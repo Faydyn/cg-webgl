@@ -3,4 +3,4 @@
 /LearningJS
 *.json
 /out
-/node-modules
+/node_modules
