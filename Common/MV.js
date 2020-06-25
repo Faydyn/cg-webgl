@@ -440,9 +440,9 @@ function lookAt(eye, at, up) {
         return mat4();
     }
 
-    var v = normalize(subtract(at, eye)); // view direction vector
-    var n = normalize(cross(v, up)); // perpendicular vector
-    var u = normalize(cross(n, v)); // "new" up vector
+    var v = new normalize(subtract(at, eye)); // view direction vector
+    var n = new normalize(cross(v, up)); // perpendicular vector
+    var u = new normalize(cross(n, v)); // "new" up vector HAD TO ADD NEW!!!!
 
     v = negate(v);
 
