@@ -1,10 +1,6 @@
 "use strict"
 
 var gl;
-
-var viewMatrix;
-var projectionMatrix;
-
 var program;
 
 var vao;
@@ -14,11 +10,11 @@ function render(timestamp, previousTimestamp) {
     var rotation = getRotation(); // vec3	
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.useProgram(program);
+
 
     gl.bindVertexArray(vao);
     var amount = 36; // 6 Flachen, 2 Dreiecke pro Flaeche, 3 Punkte pro Dreieck
-    gl.drawArrays(gl.TRIANGLES, 0, amount);
+    gl.drawArrays(gl.TRIANGLES, 0, amount); // 1a - Anpassung der Flaechenanzahl
 
     window.requestAnimFrame(function(time) {
         render(time, timestamp);
@@ -27,6 +23,8 @@ function render(timestamp, previousTimestamp) {
 
 function createGeometry() {
     var positions = [];
+
+    // 1a - BEGINN - Erstellen der Dreiecke fuer die Flaechen
     const p1 = vec3(-0.5, 0, -0.5);
     const p2 = vec3(0.5, 0, -0.5);
     const p3 = vec3(0.5, 0, 0.5);
@@ -85,12 +83,13 @@ function createGeometry() {
     // Oben
     positions.push(p5);
     positions.push(p6);
-    positions.push(p7);
+    positions.push(p7  );
 
     positions.push(p5);
     positions.push(p7);
     positions.push(p8);
 
+    // 1a - ENDE - Erstellen der Dreiecke fuer die Flaechen
     vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
 
@@ -104,8 +103,6 @@ function createGeometry() {
     const colorTriangle = [vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 0.0)];
     var colors = [].concat(...Array(12).fill(colorTriangle)); // concat (colorTriable * 12)
 
-
-
     var vboColor = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vboColor);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW);
@@ -116,8 +113,8 @@ function createGeometry() {
 function loadModel() {
     var meshData = loadMeshData();
     var positions = meshData.positions;
+    var colors = meshData.colors;  
     var normals = meshData.normals;
-    var colors = meshData.colors;
     var vertexCount = meshData.vertexCount;
 }
 
@@ -131,18 +128,53 @@ window.onload = function init() {
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
     program = initShaders(gl, "vertex-shader", "fragment-shader");
-    gl.useProgram(program);
+
 
     createGeometry();
     loadModel();
 
-    var projectionMatrix = mat4(1.0);
-    projectionMatrix = perspective(90, canvas.width / canvas.height, 0.1, 100);
+    gl.useProgram(program);
 
-    var eyePos = vec3(0, 1.0, 2.0);
+    // 1b - BEGINN - Erstellen der Matrizen
+    var eyePos = vec3(0.0, 1.0, 1.0);
     var lookAtPos = vec3(0.0, 0.0, 0.0);
     var upVector = vec3(0.0, 1.0, 0.0);
-    viewMatrix = lookAt(eyePos, lookAtPos, upVector);
+
+	//var viewMatrix = lookAt(vec3(40*Math.cos(timestamp/10000.),0, 20.0), lookAtVector, upVector);
+	var viewMatrix = lookAt(eyePos, lookAtPos, upVector);
+	
+	var modelMatrix = mat4(1.0);	
+	
+	var projectionMatrix = perspective(60.0, canvas.width/canvas.height, 0.1, 100.0);
+	
+	var uniformLocationID = gl.getUniformLocation(program, 'viewMatrix');
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(viewMatrix));
+
+	var uniformmodelID = gl.getUniformLocation(program, 'modelMatrix');
+	gl.uniformMatrix4fv(uniformmodelID, gl.FALSE, flatten(modelMatrix));
+
+	var uniformLocationID = gl.getUniformLocation(program, 'projectionMatrix');
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(projectionMatrix));
+
+    // 1b - ENDE - Erstellen der Matrizen
+    // 1c - BEGINN - Aendern der Modelmatrix
+
+	var alpha = Math.acos(4.0/5.0) * 360/(2*Math.PI);
+
+	var t1 = translate(0, -0.075, 0);
+	
+
+	var t3 = mat4(	1.0, 0.0, 0.0, 0.0,
+					0.0, -1.0, 0.0, 0.0,
+					0.0, 0.0, 1.0, 0.0,
+					0.0, 0.0, 0.0, 1.0);
+
+	var t4 = rotateZ(alpha);
+	var t5 = translate(0, 3.0, 0);
+
+	modelMatrix = scale(2, mult(t1, modelMatrix));
+    
+    // 1c - ENDE - Aendern der Modelmatrix
 
     render(0, 0);
 }
