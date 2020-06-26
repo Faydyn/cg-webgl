@@ -25,11 +25,6 @@ const vertices = [
     vec3(0.5, 0, 0.5) // 7
 ]
 
-/** 
-Alternative:
-    const colorTriangle = [vec3(0.4, 0.4, 0.4), vec3( 0.6, 0.6, 0.6,), vec3(0.7,0.7,0.7)]
-    let colors = [].concat(...Array(12).fill(colorTriangle)) // concat (colorTriable * 12)
-*/
 const vertexColors = [
     [0.0, 0.0, 0.0, 1.0], // black
     [1.0, 0.0, 0.0, 1.0], // red
@@ -39,6 +34,11 @@ const vertexColors = [
     [1.0, 0.0, 1.0, 1.0], // magenta
     [0.0, 1.0, 1.0, 1.0], // cyan
     [1.0, 1.0, 1.0, 1.0]  // white
+/* 
+Alternative:
+    const colorTriangle = [vec3(0.4, 0.4, 0.4), vec3( 0.6, 0.6, 0.6,), vec3(0.7,0.7,0.7)]
+    let colors = [].concat(...Array(12).fill(colorTriangle)) // concat (colorTriable * 12)
+*/
 ]
 
 const quad = (a, b, c, d)  => {
@@ -84,7 +84,7 @@ const setUpMatrices = canvas => {
     // 1b - ENDE - Erstellen der Matrizen
 }
 
-function createGeometry() {
+const createGeometry = () => {
     makePyramid() // 1a
 
     vao = gl.createVertexArray()
@@ -103,20 +103,15 @@ function createGeometry() {
     gl.enableVertexAttribArray(1)
 }
 
-function loadModel() {
+const loadModel = () => {
     let meshData = loadMeshData()
     let bunnyPositions = meshData.positions
     let bunnyColors = meshData.colors
-    
-    // for (let i = 0; i < bunnyPositions.length;++i){
-    //     positions.push(bunnyPositions[i])
-    //     colors.push(bunnyColors[i])
-    // }
     let normals = meshData.normals
     let vertexCount = meshData.vertexCount
 }
 
-function render(timestamp, previousTimestamp) {
+const render = (timestamp, previousTimestamp) => {
     let light = getLightPosition() // vec3
     let rotation = getRotation() // vec3	
 
@@ -124,14 +119,13 @@ function render(timestamp, previousTimestamp) {
     gl.bindVertexArray(vao)
     gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
 
-    window.requestAnimFrame(function(time) {
-        render(time, timestamp)
-    })
+    window.requestAnimFrame(time => render(time, timestamp))
 }
 
-window.onload = function init() {
+window.onload = () => {
     let canvas = document.getElementById('rendering-surface')
     gl = WebGLUtils.setupWebGL(canvas)
+
     gl.viewport(0, 0, canvas.width, canvas.height)
     gl.enable(gl.DEPTH_TEST)
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
