@@ -58,7 +58,7 @@ const quad = (a, b, c, d)  => {
     })
 }
 
-const makePyramid = allSides => allSides.map(side => quad(...side))
+const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side is a list of size 4 (Vertices of square)
 // 1a - ENDE - Erstellen der Dreiecke fuer die Flaechen
 
 const setUpMatrices = canvas => {
