@@ -70,9 +70,9 @@ const setUpMatrices = canvas => {
 
 	// 1c - BEGINN - Aendern der Modelmatrix
 	const t1 = translate(0, -0.75, 0) 
-    const t2 = scalem(2.0, 2.0, 2.0)
+    const t2 = scalem(2.0, 2.0, 2.0) //TODO: y-value 0.5 or 2.0 -> ScaleTo or ScaleBy?? Think its 2.0, because of MatrixMultiplication
     modelMatrix = mat4(1.0)
-    modelMatrix =  mult(t2, mult(t1, modelMatrix))
+    modelMatrix =  mult(t2, mult(t1, modelMatrix)) 
     // 1c - ENDE - Aendern der Modelmatrix
 	
 	let uniformLocationID = gl.getUniformLocation(program, 'viewMatrix')
@@ -105,8 +105,13 @@ function createGeometry() {
 
 function loadModel() {
     let meshData = loadMeshData()
-    let positions = meshData.positions
-    let colors = meshData.colors  
+    let bunnyPositions = meshData.positions
+    let bunnyColors = meshData.colors
+    
+    // for (let i = 0; i < bunnyPositions.length;++i){
+    //     positions.push(bunnyPositions[i])
+    //     colors.push(bunnyColors[i])
+    // }
     let normals = meshData.normals
     let vertexCount = meshData.vertexCount
 }
