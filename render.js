@@ -147,7 +147,7 @@ window.onload = function init() {
 
 	var alpha = Math.acos(4.0/5.0) * 360/(2*Math.PI);
 
-	var t1 = translate(0, -0.075, 0);
+	var t1 = translate(0, -0.075, 0); // TODO: Does this work?*
 	var t2 = scalem(2.0, 2.0, 2.0);
 
 	var t3 = mat4(	1.0, 0.0, 0.0, 0.0,
@@ -159,7 +159,7 @@ window.onload = function init() {
 	var t5 = translate(0, 3.0, 0);
 
     var modelMatrix = mat4(1.0);
-    modelMatrix =  mult(t2, mult(t1, modelMatrix));
+    modelMatrix =  mult(t2, mult(t1, modelMatrix)); // TODO: The first (inner) Multiplication, ddoes it work?*
     
     // 1c - ENDE - Aendern der Modelmatrix
 	
