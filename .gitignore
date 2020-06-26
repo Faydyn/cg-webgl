@@ -4,3 +4,4 @@
 *.json
 /out
 /node_modules
+*.pdf
