@@ -43,20 +43,13 @@ Alternative:
 
 const quad = (a, b, c, d)  => {
     let indices = [a, b, c, a, c, d]
-    for (let i = 0; i < indices.length; ++i) {
-        positions.push(vertices[indices[i]])
-        colors.push(vertexColors[indices[i]])
-    }
+    indices.forEach(i => {
+        positions.push(vertices[i])
+        colors.push(vertexColors[i])
+    })
 }
 
-const makePyramid = () => {
-    quad(0, 3, 2, 1) // vorn
-    quad(2, 3, 7, 6) // rechts
-    quad(0, 4, 7, 3) // unten
-    quad(1, 2, 6, 5) // oben
-    quad(4, 5, 6, 7) // hinten
-    quad(0, 1, 5, 4) // links
-}
+const makePyramid = allSides => allSides.map(side => quad(...side))
 // 1a - ENDE - Erstellen der Dreiecke fuer die Flaechen
 
 const setUpMatrices = canvas => {
@@ -85,7 +78,15 @@ const setUpMatrices = canvas => {
 }
 
 const createGeometry = () => {
-    makePyramid() // 1a
+    const allSides = [
+        [0, 3, 2, 1], // vorn
+        [2, 3, 7, 6], // rechts
+        [0, 4, 7, 3], // unten
+        [1, 2, 6, 5], // oben
+        [4, 5, 6, 7], // hinten
+        [0, 1, 5, 4] // links
+    ]
+    makePyramid(allSides) // 1a
 
     vao = gl.createVertexArray()
     gl.bindVertexArray(vao)
