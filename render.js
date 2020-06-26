@@ -41,6 +41,15 @@ Alternative:
 */
 ]
 
+const allSidesVertixOrder = [
+    [0, 3, 2, 1], // vorn
+    [2, 3, 7, 6], // rechts
+    [0, 4, 7, 3], // unten
+    [1, 2, 6, 5], // oben
+    [4, 5, 6, 7], // hinten
+    [0, 1, 5, 4] // links
+]
+
 const quad = (a, b, c, d)  => {
     let indices = [a, b, c, a, c, d]
     indices.forEach(i => {
@@ -78,15 +87,7 @@ const setUpMatrices = canvas => {
 }
 
 const createGeometry = () => {
-    const allSides = [
-        [0, 3, 2, 1], // vorn
-        [2, 3, 7, 6], // rechts
-        [0, 4, 7, 3], // unten
-        [1, 2, 6, 5], // oben
-        [4, 5, 6, 7], // hinten
-        [0, 1, 5, 4] // links
-    ]
-    makePyramid(allSides) // 1a
+    makePyramid(allSidesVertixOrder) // 1a
 
     vao = gl.createVertexArray()
     gl.bindVertexArray(vao)
