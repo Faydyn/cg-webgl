@@ -136,14 +136,32 @@ window.onload = function init() {
     gl.useProgram(program);
 
     // 1b - BEGINN - Erstellen der Matrizen
-    var eyePos = vec3(0.0, 1.0, 1.0);
+    var eyePos = vec3(0.0, 3.0, 2.0);
     var lookAtPos = vec3(0.0, 0.0, 0.0);
     var upVector = vec3(0.0, 1.0, 0.0);
 
 	//var viewMatrix = lookAt(vec3(40*Math.cos(timestamp/10000.),0, 20.0), lookAtVector, upVector);
 	var viewMatrix = lookAt(eyePos, lookAtPos, upVector);
 	
-	var modelMatrix = mat4(1.0);	
+	// 1c - BEGINN - Aendern der Modelmatrix
+
+	var alpha = Math.acos(4.0/5.0) * 360/(2*Math.PI);
+
+	var t1 = translate(0, -0.075, 0);
+	var t2 = scalem(2.0, 2.0, 2.0);
+
+	var t3 = mat4(	1.0, 0.0, 0.0, 0.0,
+					0.0, -1.0, 0.0, 0.0,
+					0.0, 0.0, 1.0, 0.0,
+					0.0, 0.0, 0.0, 1.0);
+
+	var t4 = rotateZ(alpha);
+	var t5 = translate(0, 3.0, 0);
+
+    var modelMatrix = mat4(1.0);
+    modelMatrix =  mult(t2, mult(t1, modelMatrix));
+    
+    // 1c - ENDE - Aendern der Modelmatrix
 	
 	var projectionMatrix = perspective(60.0, canvas.width/canvas.height, 0.1, 100.0);
 	
@@ -157,24 +175,7 @@ window.onload = function init() {
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(projectionMatrix));
 
     // 1b - ENDE - Erstellen der Matrizen
-    // 1c - BEGINN - Aendern der Modelmatrix
-
-	var alpha = Math.acos(4.0/5.0) * 360/(2*Math.PI);
-
-	var t1 = translate(0, -0.075, 0);
-	
-
-	var t3 = mat4(	1.0, 0.0, 0.0, 0.0,
-					0.0, -1.0, 0.0, 0.0,
-					0.0, 0.0, 1.0, 0.0,
-					0.0, 0.0, 0.0, 1.0);
-
-	var t4 = rotateZ(alpha);
-	var t5 = translate(0, 3.0, 0);
-
-	modelMatrix = scale(2, mult(t1, modelMatrix));
     
-    // 1c - ENDE - Aendern der Modelmatrix
 
     render(0, 0);
 }
