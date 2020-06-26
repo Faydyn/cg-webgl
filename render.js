@@ -2,6 +2,10 @@
 
 var gl;
 var program;
+var numVertices = 36;
+var positions = [];
+var colors = [];
+ 
 
 var vao;
 
@@ -13,83 +17,68 @@ function render(timestamp, previousTimestamp) {
 
 
     gl.bindVertexArray(vao);
-    var amount = 36; // 6 Flachen, 2 Dreiecke pro Flaeche, 3 Punkte pro Dreieck
-    gl.drawArrays(gl.TRIANGLES, 0, amount); // 1a - Anpassung der Flaechenanzahl
+    gl.drawArrays(gl.TRIANGLES, 0, numVertices); // 1a - Anpassung der Flaechenanzahl
 
     window.requestAnimFrame(function(time) {
         render(time, timestamp);
     });
 }
 
+
+
+function colorCube() {
+    quad(0, 3, 2, 1); // vorn
+    quad(2, 3, 7, 6); // rechts
+    quad(0, 4, 7, 3); // unten
+    quad(1, 2, 6, 5); // oben
+    quad(4, 5, 6, 7); // hinten
+    quad(0, 1, 5, 4); // links
+}
+
+function quad(a, b, c, d) {
+
+    var vertices = [vec3(-0.5, 0, -0.5), //0
+        vec3(-0.25, 0.25, -0.25), //1
+        vec3(0.25, 0.25, -0.25), // 2
+        vec3(0.5, 0, -0.5), //3
+        vec3(-0.5, 0, 0.5), // 4
+        vec3(-0.25, 0.25, 0.25), //5
+        vec3(0.25, 0.25, 0.25), //6
+        vec3(0.5, 0, 0.5) // 7
+    ];
+
+    var vertexColors = [
+        [0.0, 0.0, 0.0, 1.0], // black
+        [1.0, 0.0, 0.0, 1.0], // red
+        [1.0, 1.0, 0.0, 1.0], // yellow
+        [0.0, 1.0, 0.0, 1.0], // green
+        [0.0, 0.0, 1.0, 1.0], // blue
+        [1.0, 0.0, 1.0, 1.0], // magenta
+        [0.0, 1.0, 1.0, 1.0], // cyan
+        [1.0, 1.0, 1.0, 1.0] // white
+        ];
+
+
+    var indices = [a, b, c, a, c, d];
+    for (var i = 0; i < indices.length; ++i) {
+        positions.push(vertices[indices[i]]);
+        colors.push(vertexColors[indices[i]]);
+    }
+}
+
 function createGeometry() {
-    var positions = [];
 
     // 1a - BEGINN - Erstellen der Dreiecke fuer die Flaechen
-    const p1 = vec3(-0.5, 0, -0.5);
-    const p2 = vec3(0.5, 0, -0.5);
-    const p3 = vec3(0.5, 0, 0.5);
-    const p4 = vec3(-0.5, 0, 0.5);
-
-    const p5 = vec3(-0.25, 0.25, -0.25);
-    const p6 = vec3(0.25, 0.25, -0.25);
-    const p7 = vec3(0.25, 0.25, 0.25);
-    const p8 = vec3(-0.25, 0.25, 0.25);
-
-    // Unten
-    positions.push(p1);
-    positions.push(p2);
-    positions.push(p3);
-
-    positions.push(p1);
-    positions.push(p3);
-    positions.push(p4);
-
-    // Vorn
-    positions.push(p1);
-    positions.push(p2);
-    positions.push(p5);
-
-    positions.push(p2);
-    positions.push(p5);
-    positions.push(p6);
-
-    // Rechts
-    positions.push(p2);
-    positions.push(p3);
-    positions.push(p7);
-
-    positions.push(p2);
-    positions.push(p7);
-    positions.push(p6);
-
-    // Hinten
-    positions.push(p3);
-    positions.push(p4);
-    positions.push(p7);
-
-    positions.push(p4);
-    positions.push(p7);
-    positions.push(p8);
-
-    // Links
-    positions.push(p1);
-    positions.push(p4);
-    positions.push(p8);
-
-    positions.push(p1);
-    positions.push(p5);
-    positions.push(p8);
-
-    // Oben
-    positions.push(p5);
-    positions.push(p6);
-    positions.push(p7  );
-
-    positions.push(p5);
-    positions.push(p7);
-    positions.push(p8);
+       
+    quad(0, 3, 2, 1);
+    quad(2, 3, 7, 6);
+    quad(0, 4, 7, 3);
+    quad(1, 2, 6, 5);
+    quad(4, 5, 6, 7);
+    quad(0, 1, 5, 4);
 
     // 1a - ENDE - Erstellen der Dreiecke fuer die Flaechen
+
     vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
 
@@ -100,8 +89,8 @@ function createGeometry() {
     gl.enableVertexAttribArray(0);
 
 
-    const colorTriangle = [vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 0.0)];
-    var colors = [].concat(...Array(12).fill(colorTriangle)); // concat (colorTriable * 12)
+    // const colorTriangle = [vec3(0.4, 0.4, 0.4), vec3( 0.6, 0.6, 0.6,), vec3(0.7,0.7,0.7)];
+    // var colors = [].concat(...Array(12).fill(colorTriangle)); // concat (colorTriable * 12)
 
     var vboColor = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vboColor);
@@ -148,16 +137,8 @@ window.onload = function init() {
 	var alpha = Math.acos(4.0/5.0) * 360/(2*Math.PI);
 
 	var t1 = translate(0, -0.075, 0); // TODO: Does this work?*
-	var t2 = scalem(2.0, 2.0, 2.0);
-
-	var t3 = mat4(	1.0, 0.0, 0.0, 0.0,
-					0.0, -1.0, 0.0, 0.0,
-					0.0, 0.0, 1.0, 0.0,
-					0.0, 0.0, 0.0, 1.0);
-
-	var t4 = rotateZ(alpha);
-	var t5 = translate(0, 3.0, 0);
-
+    var t2 = scalem(2.0, 2.0, 2.0);
+    
     var modelMatrix = mat4(1.0);
     modelMatrix =  mult(t2, mult(t1, modelMatrix)); // TODO: The first (inner) Multiplication, ddoes it work?*
     
