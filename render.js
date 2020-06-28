@@ -118,16 +118,15 @@ const loadModel = () => {
     gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
     gl.enableVertexAttribArray(1)
 
-    let normals = meshData.normals
-  
+    let normals = meshData.normals  // TODO: Implement for Phong
 }
 
 const render = (timestamp, previousTimestamp) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
-    let light = getLightPosition() // vec3
-
+    let light = getLightPosition() // TODO: Implement for Phong
+    
     // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.  
     let rotation = getRotation() // [-2...2]
     let rotX = rotateX(rotation[0] * (timestamp - previousTimestamp) / 5)  //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
@@ -139,7 +138,7 @@ const render = (timestamp, previousTimestamp) => {
     gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices) 
     // 2b - ENDE 
 
-    // 1c - BEGINN - Aendern der Modelmatrix
+    // 1c - BEGINN - Aendern der Modelmatrix der Pyramide
 	const t1 = translate(0, -0.75, 0) 
     const t2 = scalem(2.0, 2.0, 2.0)
     let modelMatrixTransf =  mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu "verunreinigen"
@@ -160,11 +159,11 @@ window.onload = () => {
     gl.clearColor(0.0, 0.0, 0.0, 0.0)
     program = initShaders(gl, "vertex-shader", "fragment-shader")
 
-    createGeometry()
-    loadModel()
+    createGeometry() // 1a
+    loadModel() // 2a
     
     gl.useProgram(program)
     
-    setUpMatrices(canvas) // 1b, 1c
-    render(0, 0)
+    setUpMatrices(canvas) // 1b
+    render(0, 0) // 1c, 2b
 }
