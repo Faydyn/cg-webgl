@@ -4,15 +4,8 @@ let gl
 let program
 
 let modelMatrix
-let viewMatrix
-let projectionMatrix
 let vao
-
 let vaoBunny 
-
-let rotX
-let rotY
-let rotZ
 
 let positions = []
 let colors = []
@@ -74,8 +67,8 @@ const setUpMatrices = canvas => {
     const lookVec = vec3(0.0, 0.0, 0.0)
     const upVec = vec3(0.0, 1.0, 0.0)
 
-	viewMatrix = lookAt(eyeVec, lookVec, upVec)
-    projectionMatrix = perspective(60.0, canvas.width/canvas.height, 0.1, 100.0)
+	let viewMatrix = lookAt(eyeVec, lookVec, upVec)
+    let projectionMatrix = perspective(60.0, canvas.width/canvas.height, 0.1, 100.0)
     modelMatrix = mat4(1.0) 
     
     let uniformLocationID = gl.getUniformLocation(program, 'viewMatrix')
@@ -137,9 +130,9 @@ const render = (timestamp, previousTimestamp) => {
 
     // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.  
     let rotation = getRotation() // [-2...2]
-    rotX = rotateX(rotation[0] * (timestamp - previousTimestamp) / 5)  //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
-    rotY = rotateY(rotation[1] * (timestamp - previousTimestamp) / 5)  // Divison durch 5 ist arbitraer gewaehlt, damit es angenehmer anzusehen ist.
-    rotZ = rotateZ(rotation[2] * (timestamp - previousTimestamp) / 5)  // timestamp - previousTimestamp ~ 16ms @60Hz
+    let rotX = rotateX(rotation[0] * (timestamp - previousTimestamp) / 5)  //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
+    let rotY = rotateY(rotation[1] * (timestamp - previousTimestamp) / 5)  // Divison durch 5 ist arbitraer gewaehlt, damit es angenehmer anzusehen ist.
+    let rotZ = rotateZ(rotation[2] * (timestamp - previousTimestamp) / 5)  // timestamp - previousTimestamp ~ 16ms @60Hz
     modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um 3 Achsen entsprechend den Werten des Sliders, rotierter "state" wird in globaler modelMatrix gespeichert
     gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
     gl.bindVertexArray(vaoBunny)
