@@ -1,11 +1,13 @@
 *.DS_Store
-/.vscode
-/LearningJS
 *.json
-/out
-/node_modules
 *.pdf
 *.idea
+
 .jshintrc
 .prettierrc
 .prettierignore
+
+/.vscode
+/LearningJS
+/out
+/node_modules
