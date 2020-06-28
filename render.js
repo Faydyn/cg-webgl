@@ -8,6 +8,8 @@ let projectionMatrix
 let modelMatrix
 let vao
 
+let vaoBunny 
+
 let rotX
 let rotY
 let rotZ
@@ -15,7 +17,7 @@ let rotZ
 let positions = []
 let colors = []
 
-
+let bunnyVertices
 const numVertices = 36
 
 // 1a - BEGINN - Erstellen der Dreiecke fuer die Flaechen
@@ -52,7 +54,7 @@ const allSidesVertixOrder = [
     [0, 4, 7, 3], // unten
     [1, 2, 6, 5], // oben
     [4, 5, 6, 7], // hinten
-    [0, 1, 5, 4] // links
+    [0, 1, 5, 4]  // links
 ]
 
 const quad = (a, b, c, d)  => {
@@ -114,25 +116,48 @@ const createGeometry = () => {
 }
 
 const loadModel = () => {
+    // TODO: UNSCALE FKCIN BUNNY
     let meshData = loadMeshData()
+    
     let bunnyPositions = meshData.positions
     let bunnyColors = meshData.colors
+
+
+    vaoBunny = gl.createVertexArray()
+    gl.bindVertexArray(vaoBunny)
+
+    let vertexBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(bunnyPositions), gl.STATIC_DRAW)
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0)
+    gl.enableVertexAttribArray(0)
+
+    let vboColor = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, vboColor)
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(bunnyColors), gl.STATIC_DRAW)
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
+    gl.enableVertexAttribArray(1)
+
+    
     let normals = meshData.normals
-    let vertexCount = meshData.vertexCount
+    bunnyVertices = meshData.vertexCount
 }
 
 const render = (timestamp, previousTimestamp) => {
     let light = getLightPosition() // vec3
     let rotation = getRotation() // vec3	Intervall -2...2
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.bindVertexArray(vao)
     gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
+    gl.bindVertexArray(vaoBunny)
+    gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices) 
     
-    // 2b - BEGINN 
-    rotX = rotateX(rotation[0])
-    rotY = rotateY(rotation[1])
-    rotZ = rotateZ(rotation[2])  
-    modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um Koordinatenursprung fuer jede der 3 Achsen entsprechend den Werten des Silders.
+    // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
+    rotX = rotateX(rotation[0]) // rotate(rotation[0],[1, 0, 0])
+    rotY = rotateY(rotation[1]) // rotate(rotation[1],[0, 1, 0])
+    rotZ = rotateZ(rotation[2]) // rotate(rotation[2],[0, 0, 1])  
+    modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um 3 Achsen entsprechend den Werten des Sliders.
     
     let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))   
