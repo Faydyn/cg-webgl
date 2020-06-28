@@ -121,6 +121,8 @@ const loadModel = () => {
     let normals = meshData.normals  // TODO: Implement for Phong
 }
 
+const rotateAllAxis = (x,y,z) => modelMatrix =  mult(rotateZ(z), mult(rotateY(y), mult(rotateX(x), modelMatrix)))
+
 const render = (timestamp, previousTimestamp) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
@@ -128,11 +130,8 @@ const render = (timestamp, previousTimestamp) => {
     let light = getLightPosition() // TODO: Implement for Phong
     
     // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.  
-    let rotation = getRotation() // [-2...2]
-    let rotX = rotateX(rotation[0])  //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
-    let rotY = rotateY(rotation[1])  
-    let rotZ = rotateZ(rotation[2])  
-    modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um 3 Achsen entsprechend den Werten des Sliders, rotierter "state" wird in globaler modelMatrix gespeichert
+    //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
+    rotateAllAxis(...getRotation())
     gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
     gl.bindVertexArray(vaoBunny)
     gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices) 
