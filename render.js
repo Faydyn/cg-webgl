@@ -25,7 +25,7 @@ const vertices = [
 	vec3(-0.5, 0, 0.5), // 4
 	vec3(-0.25, 0.25, 0.25), //5
 	vec3(0.25, 0.25, 0.25), //6
-	vec3(0.5, 0, 0.5) // 7
+	vec3(0.5, 0, 0.5), // 7
 ]
 
 const vertexColors = [
@@ -36,7 +36,7 @@ const vertexColors = [
 	[0.0, 0.0, 1.0, 1.0], // blue
 	[1.0, 0.0, 1.0, 1.0], // magenta
 	[0.0, 1.0, 1.0, 1.0], // cyan
-	[1.0, 1.0, 1.0, 1.0]  // white
+	[1.0, 1.0, 1.0, 1.0], // white
 	/* 
 	Alternative:
 		const colorTriangle = [vec3(0.4, 0.4, 0.4), vec3( 0.6, 0.6, 0.6,), vec3(0.7,0.7,0.7)]
@@ -50,7 +50,7 @@ const allSidesVertixOrder = [
 	[0, 4, 7, 3], // unten
 	[1, 2, 6, 5], // oben
 	[4, 5, 6, 7], // hinten
-	[0, 1, 5, 4]  // links
+	[0, 1, 5, 4], // links
 ]
 
 const quad = (a, b, c, d) => {
@@ -121,10 +121,10 @@ const loadModel = () => {
 	gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.enableVertexAttribArray(1)
 
-	let normals = meshData.normals  // TODO: Implement for Phong
+	let normals = meshData.normals // TODO: Implement for Phong
 }
 
-const rotateAllAxis = (x, y, z) => modelMatrix = mult(rotateZ(z), mult(rotateY(y), mult(rotateX(x), modelMatrix)))
+const rotateAllAxis = (x, y, z) => (modelMatrix = mult(rotateZ(z), mult(rotateY(y), mult(rotateX(x), modelMatrix))))
 
 const render = (timestamp, previousTimestamp) => {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -132,13 +132,13 @@ const render = (timestamp, previousTimestamp) => {
 
 	let light = getLightPosition() // TODO: Implement for Phong
 
-	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.  
+	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
 	//TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
 	rotateAllAxis(...getRotation())
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
-	// 2b - ENDE 
+	// 2b - ENDE
 
 	// 1c - BEGINN - Aendern der Modelmatrix der Pyramide
 	const t1 = translate(0, -0.75, 0)

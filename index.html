@@ -2,8 +2,8 @@
 <html>
 
 <head>
-	<title>Rendering mit WebGL</title>
-	<script type="x-shader/x-vertex" id="vertex-shader">#version 300 es
+  <title>Rendering mit WebGL</title>
+  <script type="x-shader/x-vertex" id="vertex-shader">#version 300 es
 
     precision mediump float;
  
@@ -12,9 +12,9 @@
 
     out vec3 color;
     
-    uniform mat4 viewMatrix;
+    uniform mat4 viewMatrix;    
     uniform mat4 modelMatrix;
-    uniform mat4 projectionMatrix;
+    uniform mat4 projectionMatrix; 
 
     void main() {  
       color = aColor;  
@@ -44,7 +44,8 @@
 </head>
 
 <body>
-	<body style="width: 1200; height:600px;">
+
+  <body style="width: 1200; height:600px;">
     <div style="float: left;">
       <canvas id="rendering-surface" height="600" width="800"></canvas>
     </div>
@@ -57,10 +58,13 @@
       </div>
       <div>
         <div style="font-weight: bold; font-size: larger; padding-bottom: 10px;">Object Rotation Speed</div>
-        <label for="rotate-x">Rotate Around X-Axis<input type="range" name="rotate-x" id="rotate-x" min="-2" max="2" value="0" step="0.25"></label>
-        <label for="rotate-y">Rotate Around Y-Axis<input type="range" name="rotate-y" id="rotate-y" min="-2" max="2" value="0" step="0.25"></label>
-        <label for="rotate-z">Rotate Around Z-Axis<input type="range" name="rotate-z" id="rotate-z" min="-2" max="2" value="0" step="0.25"></label>
-      </div>	
+        <label for="rotate-x">Rotate Around X-Axis<input type="range" name="rotate-x" id="rotate-x" min="-2" max="2"
+            value="0" step="0.25"></label>
+        <label for="rotate-y">Rotate Around Y-Axis<input type="range" name="rotate-y" id="rotate-y" min="-2" max="2"
+            value="0" step="0.25"></label>
+        <label for="rotate-z">Rotate Around Z-Axis<input type="range" name="rotate-z" id="rotate-z" min="-2" max="2"
+            value="0" step="0.25"></label>
+      </div>
     </div>
   </body>
 </body>
