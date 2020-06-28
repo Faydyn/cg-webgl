@@ -8,8 +8,13 @@ let projectionMatrix
 let modelMatrix
 let vao
 
+let rotX
+let rotY
+let rotZ
+
 let positions = []
 let colors = []
+
 
 const numVertices = 36
 
@@ -58,21 +63,24 @@ const quad = (a, b, c, d)  => {
     })
 }
 
-const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side is a list of size 4 (Vertices of square)
+const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side is a list of 4 Vertices
 // 1a - ENDE - Erstellen der Dreiecke fuer die Flaechen
 
 const setUpMatrices = canvas => {
     // 1b - BEGINN - Erstellen der Matrizen
-    const eyePos = vec3(0.0, 3.0, 2.0)
-    const lookAtPos = vec3(0.0, 0.0, 0.0)
-    const upVector = vec3(0.0, 1.0, 0.0)
+    const eyeVec = vec3(0.0, 3.0, 2.0)
+    const lookVec = vec3(0.0, 0.0, 0.0)
+    const upVec = vec3(0.0, 1.0, 0.0)
 
-	viewMatrix = lookAt(eyePos, lookAtPos, upVector)
+	viewMatrix = lookAt(eyeVec, lookVec, upVec)
     projectionMatrix = perspective(60.0, canvas.width/canvas.height, 0.1, 100.0)
 
 	// 1c - BEGINN - Aendern der Modelmatrix
 	const t1 = translate(0, -0.75, 0) 
-    const t2 = scalem(2.0, 2.0, 2.0) //TODO: y-value 0.5 or 2.0 -> ScaleTo or ScaleBy?? Think its 2.0, because of MatrixMultiplication
+    const t2 = scalem(2.0, 2.0, 2.0) 
+     
+
+
     modelMatrix = mat4(1.0)
     modelMatrix =  mult(t2, mult(t1, modelMatrix)) 
     // 1c - ENDE - Aendern der Modelmatrix
@@ -115,11 +123,20 @@ const loadModel = () => {
 
 const render = (timestamp, previousTimestamp) => {
     let light = getLightPosition() // vec3
-    let rotation = getRotation() // vec3	
-
+    let rotation = getRotation() // vec3	Intervall -2...2
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.bindVertexArray(vao)
     gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
+    
+    // 2b - BEGINN 
+    rotX = rotateX(rotation[0])
+    rotY = rotateY(rotation[1])
+    rotZ = rotateZ(rotation[2])  
+    modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um Koordinatenursprung fuer jede der 3 Achsen entsprechend den Werten des Silders.
+    
+    let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))   
+    // 2b - ENDE 
 
     window.requestAnimFrame(time => render(time, timestamp))
 }
