@@ -1,4 +1,4 @@
-"use strict"
+'use strict'
 /* jshint	-W097 */
 /* global 	vec3, lookAt, perspective, mat4, flatten, loadMeshData, mult, rotateX, rotateY, rotateZ,
 			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders */
@@ -143,7 +143,7 @@ const render = (timestamp, previousTimestamp) => {
 	// 1c - BEGINN - Aendern der Modelmatrix der Pyramide
 	const t1 = translate(0, -0.75, 0)
 	const t2 = scalem(2.0, 2.0, 2.0)
-	let modelMatrixTransf = mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu "verunreinigen"
+	let modelMatrixTransf = mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrixTransf))
 	gl.bindVertexArray(vao)
 	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
@@ -159,7 +159,7 @@ window.onload = () => {
 	gl.viewport(0, 0, canvas.width, canvas.height)
 	gl.enable(gl.DEPTH_TEST)
 	gl.clearColor(0.0, 0.0, 0.0, 0.0)
-	program = initShaders(gl, "vertex-shader", "fragment-shader")
+	program = initShaders(gl, 'vertex-shader', 'fragment-shader')
 
 	createGeometry() // 1a
 	loadModel() // 2a
