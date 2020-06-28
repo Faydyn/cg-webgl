@@ -129,9 +129,9 @@ const render = (timestamp, previousTimestamp) => {
     
     // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.  
     let rotation = getRotation() // [-2...2]
-    let rotX = rotateX(rotation[0] * (timestamp - previousTimestamp) / 5)  //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
-    let rotY = rotateY(rotation[1] * (timestamp - previousTimestamp) / 5)  // Divison durch 5 ist arbitraer gewaehlt, damit es angenehmer anzusehen ist.
-    let rotZ = rotateZ(rotation[2] * (timestamp - previousTimestamp) / 5)  // timestamp - previousTimestamp ~ 16ms @60Hz
+    let rotX = rotateX(rotation[0])  //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
+    let rotY = rotateY(rotation[1])  
+    let rotZ = rotateZ(rotation[2])  
     modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um 3 Achsen entsprechend den Werten des Sliders, rotierter "state" wird in globaler modelMatrix gespeichert
     gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
     gl.bindVertexArray(vaoBunny)
