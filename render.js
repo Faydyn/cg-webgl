@@ -76,16 +76,15 @@ const setUpMatrices = canvas => {
 
 	viewMatrix = lookAt(eyeVec, lookVec, upVec)
     projectionMatrix = perspective(60.0, canvas.width/canvas.height, 0.1, 100.0)
+    modelMatrix = mat4(1.0) 
     
     let uniformLocationID = gl.getUniformLocation(program, 'viewMatrix')
     gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(viewMatrix))
 	uniformLocationID = gl.getUniformLocation(program, 'projectionMatrix')
     gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(projectionMatrix))
-    // 1b - ENDE - Erstellen der Matrizen
+    // modelMatrix wird in render() uebergeben, da dort die Transformationen sind
 
-    modelMatrix = mat4(1.0) // modelMatrix jedes Mal neu gesetzt
-    uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
-    gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+    // 1b - ENDE - Erstellen der Matrizen
 }
 
 const createGeometry = () => {
@@ -127,40 +126,34 @@ const loadModel = () => {
     gl.enableVertexAttribArray(1)
 
     let normals = meshData.normals
+  
 }
 
 const render = (timestamp, previousTimestamp) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
-    modelMatrix = mat4(1.0) // TODO: ROTATION RESETS WHEN CHANGING SLIDER
 
     let light = getLightPosition() // vec3
 
-    // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
-    let rotation = getRotation() // vec3	Intervall -2...2
-
-    //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
-    rotX = rotateX(rotation[0] * timestamp / 3) // rotate(rotation[0]*timestamp,[1, 0, 0])
-    rotY = rotateY(rotation[1] * timestamp / 3) // rotate(rotation[1]*timestamp,[0, 1, 0])
-    rotZ = rotateZ(rotation[2] * timestamp / 3) // rotate(rotation[2]*timestamp,[0, 0, 1])
-    modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um 3 Achsen entsprechend den Werten des Sliders.
-    
+    // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.  
+    let rotation = getRotation() // [-2...2]
+    rotX = rotateX(rotation[0] * (timestamp - previousTimestamp) / 5)  //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
+    rotY = rotateY(rotation[1] * (timestamp - previousTimestamp) / 5)  // Divison durch 5 ist arbitraer gewaehlt, damit es angenehmer anzusehen ist.
+    rotZ = rotateZ(rotation[2] * (timestamp - previousTimestamp) / 5)  // timestamp - previousTimestamp ~ 16ms @60Hz
+    modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um 3 Achsen entsprechend den Werten des Sliders, rotierter "state" wird in globaler modelMatrix gespeichert
     gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
     gl.bindVertexArray(vaoBunny)
     gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices) 
-    gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+    // 2b - ENDE 
 
     // 1c - BEGINN - Aendern der Modelmatrix
 	const t1 = translate(0, -0.75, 0) 
     const t2 = scalem(2.0, 2.0, 2.0)
-
-    modelMatrix =  mult(t2, mult(t1, modelMatrix)) 
-	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
-    // 1c - ENDE - Aendern der Modelmatrix
+    let modelMatrixTransf =  mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu "verunreinigen"
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrixTransf))
     gl.bindVertexArray(vao)
     gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
-
-    // 2b - ENDE 
+    // 1c - ENDE - Aendern der Modelmatrix
 
     window.requestAnimFrame(time => render(time, timestamp))
 }
