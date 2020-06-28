@@ -3,9 +3,9 @@
 let gl
 let program
 
+let modelMatrix
 let viewMatrix
 let projectionMatrix
-let modelMatrix
 let vao
 
 let vaoBunny 
@@ -76,24 +76,16 @@ const setUpMatrices = canvas => {
 
 	viewMatrix = lookAt(eyeVec, lookVec, upVec)
     projectionMatrix = perspective(60.0, canvas.width/canvas.height, 0.1, 100.0)
-
-	// 1c - BEGINN - Aendern der Modelmatrix
-	const t1 = translate(0, -0.75, 0) 
-    const t2 = scalem(2.0, 2.0, 2.0) 
-     
-
-
-    modelMatrix = mat4(1.0)
-    modelMatrix =  mult(t2, mult(t1, modelMatrix)) 
-    // 1c - ENDE - Aendern der Modelmatrix
-	
-	let uniformLocationID = gl.getUniformLocation(program, 'viewMatrix')
+    
+    let uniformLocationID = gl.getUniformLocation(program, 'viewMatrix')
     gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(viewMatrix))
 	uniformLocationID = gl.getUniformLocation(program, 'projectionMatrix')
-	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(projectionMatrix))
-	uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
-	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+    gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(projectionMatrix))
     // 1b - ENDE - Erstellen der Matrizen
+
+    modelMatrix = mat4(1.0) // modelMatrix jedes Mal neu gesetzt
+    uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
+    gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 }
 
 const createGeometry = () => {
@@ -116,51 +108,58 @@ const createGeometry = () => {
 }
 
 const loadModel = () => {
-    // TODO: UNSCALE FKCIN BUNNY
     let meshData = loadMeshData()
     
-    let bunnyPositions = meshData.positions
-    let bunnyColors = meshData.colors
-
-
+    bunnyVertices = meshData.vertexCount
     vaoBunny = gl.createVertexArray()
     gl.bindVertexArray(vaoBunny)
 
     let vertexBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(bunnyPositions), gl.STATIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(meshData.positions), gl.STATIC_DRAW)
     gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0)
     gl.enableVertexAttribArray(0)
 
     let vboColor = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, vboColor)
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(bunnyColors), gl.STATIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(meshData.colors), gl.STATIC_DRAW)
     gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
     gl.enableVertexAttribArray(1)
 
-    
     let normals = meshData.normals
-    bunnyVertices = meshData.vertexCount
 }
 
 const render = (timestamp, previousTimestamp) => {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
+    modelMatrix = mat4(1.0) // TODO: ROTATION RESETS WHEN CHANGING SLIDER
+
     let light = getLightPosition() // vec3
+
+    // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
     let rotation = getRotation() // vec3	Intervall -2...2
 
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-    gl.bindVertexArray(vao)
-    gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
-    gl.bindVertexArray(vaoBunny)
-    gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices) 
-    
-    // 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
-    rotX = rotateX(rotation[0]) // rotate(rotation[0],[1, 0, 0])
-    rotY = rotateY(rotation[1]) // rotate(rotation[1],[0, 1, 0])
-    rotZ = rotateZ(rotation[2]) // rotate(rotation[2],[0, 0, 1])  
+    //TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
+    rotX = rotateX(rotation[0] * timestamp / 3) // rotate(rotation[0]*timestamp,[1, 0, 0])
+    rotY = rotateY(rotation[1] * timestamp / 3) // rotate(rotation[1]*timestamp,[0, 1, 0])
+    rotZ = rotateZ(rotation[2] * timestamp / 3) // rotate(rotation[2]*timestamp,[0, 0, 1])
     modelMatrix =  mult(rotZ, mult(rotY, mult(rotX, modelMatrix))) // Rotation um 3 Achsen entsprechend den Werten des Sliders.
     
-    let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
-	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))   
+    gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+    gl.bindVertexArray(vaoBunny)
+    gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices) 
+    gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+
+    // 1c - BEGINN - Aendern der Modelmatrix
+	const t1 = translate(0, -0.75, 0) 
+    const t2 = scalem(2.0, 2.0, 2.0)
+
+    modelMatrix =  mult(t2, mult(t1, modelMatrix)) 
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+    // 1c - ENDE - Aendern der Modelmatrix
+    gl.bindVertexArray(vao)
+    gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
+
     // 2b - ENDE 
 
     window.requestAnimFrame(time => render(time, timestamp))
