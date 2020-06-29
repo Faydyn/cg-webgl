@@ -1,6 +1,6 @@
 'use strict'
 /* jshint	-W097 */
-/* global 	vec3, lookAt, perspective, mat4, flatten, loadMeshData, mult, rotateX, rotateY, rotateZ,
+/* global 	console, vec3, lookAt, perspective, mat4, flatten, loadMeshData, mult, rotateX, rotateY, rotateZ,
 			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders */
 
 let gl
@@ -116,7 +116,11 @@ const loadModel = () => {
 	gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.enableVertexAttribArray(1)
 
-	let normals = meshData.normals // TODO: Implement for Phong
+	let normalsBuffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer)
+	gl.bufferData(gl.ARRAY_BUFFER, flatten(meshData.normals), gl.STATIC_DRAW)
+	gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
+	gl.enableVertexAttribArray(2)
 }
 
 const rotateAllAxis = (x, y, z) => (modelMatrix = mult(rotateZ(z), mult(rotateY(y), mult(rotateX(x), modelMatrix))))
@@ -125,7 +129,8 @@ const render = (timestamp, previousTimestamp) => {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
-	let light = getLightPosition() // TODO: Implement for Phong
+	let light = getLightPosition() // TODO: Implement for Phong#
+	console.log(light)
 
 	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
 	//TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
