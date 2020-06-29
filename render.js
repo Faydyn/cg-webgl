@@ -37,11 +37,6 @@ const vertexColors = [
 	[1.0, 0.0, 1.0, 1.0], // magenta
 	[0.0, 1.0, 1.0, 1.0], // cyan
 	[1.0, 1.0, 1.0, 1.0], // white
-	/* 
-	Alternative:
-		const colorTriangle = [vec3(0.4, 0.4, 0.4), vec3( 0.6, 0.6, 0.6,), vec3(0.7,0.7,0.7)]
-		let colors = [].concat(...Array(12).fill(colorTriangle)) // concat (colorTriable * 12)
-	*/
 ]
 
 const allSidesVertixOrder = [
