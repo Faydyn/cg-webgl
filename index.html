@@ -17,6 +17,8 @@
     uniform mat4 modelMatrix;
     uniform mat4 projectionMatrix; 
 
+    uniform vec3 lightPos;
+
     void main() { 
       color = aColor;
     
@@ -26,7 +28,7 @@
       vec3 I_diffuse = vec3(0.7);
       vec3 normal = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
 
-      float lambert = dot(vec3(1.0, 1.0, 1.0), normal); // get Light
+      float lambert = dot(lightPos, normal); // get Light
       vec3 phong_diffuse = aColor + I_diffuse * lambert;
 
       color = phong_ambient + phong_diffuse;

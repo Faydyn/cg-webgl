@@ -7,8 +7,6 @@
 
 //TODO:
 /**
- * 1. Fix rotation around axis(X and Z) for pyramid -> Problem lies in modelMatrix
- *
  * 2. Finish Phong Shading:
  * 2.1 REWORK FOR BUNNY
  * 2.2 ADD NORMALS TO PYRAMID, IMPLEMENT FOR PYRAMID
@@ -17,16 +15,11 @@
  * 		II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
  * 		III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
  *
- * 3. Get LightPosition to Shaders, so its moveable (quite similar to rotation sliders)
- *
  * 4. Pay Attention to material parameters like "diffuse, spectular, shininess"
  *
  * 5. Generate Sun as a Lightsrc (3D Sphere)
  *
  * 6. Remove tmp Coord Sys
- *
- * QUESTIONS:
- * How to use different matrices for different objects??
  */
 
 let gl
@@ -35,25 +28,26 @@ let program
 let vao
 let vaoBunny
 
-const rotationalState = {
-	x: 0,
-	y: 0,
-	z: 0,
-	increment: function (a, b, c) {
-		this.x += a
-		this.y += b
-		this.z += c
-	},
-	getRotationalState: function () {
-		return [this.x, this.y, this.z]
-	},
-}
-
 let positions = []
 let colors = []
 
 let bunnyVertices
 const numVertices = 36
+
+const rotationalState = {
+	// 2b - Helper
+	x: 0,
+	y: 0,
+	z: 0,
+	increment(a, b, c) {
+		this.x += a
+		this.y += b
+		this.z += c
+	},
+	getValues() {
+		return [this.x, this.y, this.z]
+	}
+}
 
 // 1a - BEGINN - Erstellen der Dreiecke fuer die Flaechen
 const vertices = [
@@ -64,7 +58,7 @@ const vertices = [
 	vec3(-0.5, 0, 0.5), // 4
 	vec3(-0.25, 0.25, 0.25), //5
 	vec3(0.25, 0.25, 0.25), //6
-	vec3(0.5, 0, 0.5), // 7
+	vec3(0.5, 0, 0.5) // 7
 ]
 
 const vertexColors = [
@@ -75,7 +69,7 @@ const vertexColors = [
 	[0.0, 0.0, 1.0, 1.0], // blue
 	[1.0, 0.0, 1.0, 1.0], // magenta
 	[0.0, 1.0, 1.0, 1.0], // cyan
-	[1.0, 1.0, 1.0, 1.0], // white
+	[1.0, 1.0, 1.0, 1.0] // white
 ]
 
 const allSidesVertixOrder = [
@@ -84,7 +78,7 @@ const allSidesVertixOrder = [
 	[0, 4, 7, 3], // unten
 	[1, 2, 6, 5], // oben
 	[4, 5, 6, 7], // hinten
-	[0, 1, 5, 4], // links
+	[0, 1, 5, 4] // links
 ]
 
 const quad = (a, b, c, d) => {
@@ -100,7 +94,7 @@ const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side i
 
 const setUpMatrices = canvas => {
 	// 1b - BEGINN - Erstellen der Matrizen
-	const eyeVec = vec3(0.0, 0.75, 2.5)
+	const eyeVec = vec3(0.0, 1.5, 2.5)
 	const lookVec = vec3(0.0, 0.0, 0.0)
 	const upVec = vec3(0.0, 1.0, 0.0)
 
@@ -118,19 +112,6 @@ const setUpMatrices = canvas => {
 
 const createGeometry = () => {
 	makePyramid(allSidesVertixOrder) // 1a
-
-	positions.push(vec3(0.0, 0.0, 0.0))
-	positions.push(vec3(1.0, 0.0, 0.0))
-	positions.push(vec3(0.0, 0.0, 0.0))
-	positions.push(vec3(0.0, 0.0, 1.0))
-	positions.push(vec3(0.0, 0.0, 0.0))
-	positions.push(vec3(0.0, 1.0, 0.0))
-	colors.push(vec3(0.0, 0.0, 1.0))
-	colors.push(vec3(0.0, 0.0, 1.0))
-	colors.push(vec3(0.0, 0.0, 1.0))
-	colors.push(vec3(0.0, 0.0, 1.0))
-	colors.push(vec3(0.0, 0.0, 1.0))
-	colors.push(vec3(0.0, 0.0, 1.0))
 
 	vao = gl.createVertexArray()
 	gl.bindVertexArray(vao)
@@ -178,11 +159,15 @@ const rotateAllAxis = (matrix, x, y, z) => mult(rotateZ(z), mult(rotateY(y), mul
 
 const render = (timestamp, previousTimestamp) => {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
-	let light = getLightPosition()
+	// 3b - BEGINN
+	let uniformLocationID = gl.getUniformLocation(program, 'lightPos')
+	let light = getLightPosition() // nicht pro Frame, d.h. die hier erhaltene Position ist immer absolut
+	gl.uniform3fv(uniformLocationID, flatten(light))
+	// 3b - ENDE
 
 	let modelMatrix = mat4(1.0) // clean modelMatrix, rotational progress is saved in own variable
+	uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
 	// TODO: START - Remove Temp Coord System at end
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
@@ -194,7 +179,9 @@ const render = (timestamp, previousTimestamp) => {
 	const t1 = translate(0, -0.75, 0)
 	const t2 = scalem(2.0, 2.0, 2.0)
 	modelMatrix = mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
-	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getRotationalState())
+
+	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
+	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getValues())
 
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vao)
@@ -202,15 +189,12 @@ const render = (timestamp, previousTimestamp) => {
 	// 1c - ENDE - Aendern der Modelmatrix
 
 	modelMatrix = mat4(1.0)
-	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getRotationalState())
+	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getValues())
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
 
-	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
-
-	rotationalState.increment(...getRotation().map(x => parseFloat(x)))
-
+	rotationalState.increment(...getRotation().map(x => parseFloat(x))) // (de-)increase rotation state for next frame
 	// 2b - ENDE
 
 	window.requestAnimFrame(time => render(time, timestamp))
