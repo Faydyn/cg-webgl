@@ -3,6 +3,30 @@
 /* global 	console, vec3, lookAt, perspective, mat4, flatten, loadMeshData, mult, rotateX, rotateY, rotateZ,
 			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders */
 
+//TODO:
+/**
+ * 1. Fix rotation around axis(X and Z) for pyramid -> Problem lies in modelMatrix
+ *
+ * 2. Finish Phong Shading:
+ * 2.1 REWORK FOR BUNNY
+ * 2.2 ADD NORMALS TO PYRAMID, IMPLEMENT FOR PYRAMID
+ * 		SRC:
+ * 		I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
+ * 		II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
+ * 		III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
+ *
+ * 3. Get LightPosition to Shaders, so its moveable (quite similar to rotation sliders)
+ *
+ * 4. Pay Attention to material parameters like "diffuse, spectular, shininess"
+ *
+ * 5. Generate Sun as a Lightsrc (3D Sphere)
+ *
+ * 6. Remove tmp Coord Sys
+ *
+ * QUESTIONS:
+ * How to use different matrices for different objects??
+ */
+
 let gl
 let program
 
@@ -61,7 +85,7 @@ const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side i
 
 const setUpMatrices = canvas => {
 	// 1b - BEGINN - Erstellen der Matrizen
-	const eyeVec = vec3(0.0, 3.0, 2.0)
+	const eyeVec = vec3(0.0, 0.75, 2.5)
 	const lookVec = vec3(0.0, 0.0, 0.0)
 	const upVec = vec3(0.0, 1.0, 0.0)
 
@@ -80,6 +104,19 @@ const setUpMatrices = canvas => {
 
 const createGeometry = () => {
 	makePyramid(allSidesVertixOrder) // 1a
+
+	positions.push(vec3(0.0, 0.0, 0.0))
+	positions.push(vec3(1.0, 0.0, 0.0))
+	positions.push(vec3(0.0, 0.0, 0.0))
+	positions.push(vec3(0.0, 0.0, 1.0))
+	positions.push(vec3(0.0, 0.0, 0.0))
+	positions.push(vec3(0.0, 1.0, 0.0))
+	colors.push(vec3(0.0, 0.0, 1.0))
+	colors.push(vec3(0.0, 0.0, 1.0))
+	colors.push(vec3(0.0, 0.0, 1.0))
+	colors.push(vec3(0.0, 0.0, 1.0))
+	colors.push(vec3(0.0, 0.0, 1.0))
+	colors.push(vec3(0.0, 0.0, 1.0))
 
 	vao = gl.createVertexArray()
 	gl.bindVertexArray(vao)
@@ -123,30 +160,41 @@ const loadModel = () => {
 	gl.enableVertexAttribArray(2)
 }
 
-const rotateAllAxis = (x, y, z) => (modelMatrix = mult(rotateZ(z), mult(rotateY(y), mult(rotateX(x), modelMatrix))))
+const rotateAllAxis = (matrix, x, y, z) => mult(rotateZ(z), mult(rotateY(y), mult(rotateX(x), matrix)))
 
 const render = (timestamp, previousTimestamp) => {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
-	let light = getLightPosition() // TODO: Implement for Phong#
+	let light = getLightPosition()
 	console.log(light)
 
+	// TODO: START - Remove Temp Coord System at end
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+	gl.bindVertexArray(vao)
+	gl.drawArrays(gl.LINES, numVertices, 6)
+	// TODO: END - Remove Temp Coord System at end
+
 	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
-	//TODO: X-Axis is weird, result of Y-coords? (0.25 vs. -0.75)
-	rotateAllAxis(...getRotation())
+	modelMatrix = rotateAllAxis(modelMatrix, ...getRotation())
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
+
 	// 2b - ENDE
 
 	// 1c - BEGINN - Aendern der Modelmatrix der Pyramide
 	const t1 = translate(0, -0.75, 0)
 	const t2 = scalem(2.0, 2.0, 2.0)
-	let modelMatrixTransf = mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
+	let modelMatrixTransf = mult(t1, modelMatrix) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
+	modelMatrixTransf = rotateAllAxis(modelMatrixTransf, ...getRotation())
+	modelMatrixTransf = mult(t2, modelMatrixTransf)
+
+	//modelMatrixTransf = mult(t1, rotateAllAxis(mult(translate(0, 0.75, 0), modelMatrix), getRotation()))
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrixTransf))
 	gl.bindVertexArray(vao)
 	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
+
 	// 1c - ENDE - Aendern der Modelmatrix
 
 	window.requestAnimFrame(time => render(time, timestamp))

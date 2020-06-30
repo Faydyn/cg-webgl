@@ -18,16 +18,16 @@
     uniform mat4 projectionMatrix; 
 
     void main() { 
-      
-      vec3 material = vec3(1.0,1.0,0.0);
+      color = aColor;
+    
       vec3 I_ambient = vec3(0.2,0.2,0.2);
-      vec3 phong_ambient = material * I_ambient; 
+      vec3 phong_ambient = aColor * I_ambient; 
 
-      vec3 I_diffuse = vec3(0.8);
+      vec3 I_diffuse = vec3(0.7);
       vec3 normal = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
 
-      float lambert = dot(vec3(100, 50, 100), normal); // get Light
-      vec3 phong_diffuse = material * I_diffuse * lambert;
+      float lambert = dot(vec3(1.0, 1.0, 1.0), normal); // get Light
+      vec3 phong_diffuse = aColor + I_diffuse * lambert;
 
       color = phong_ambient + phong_diffuse;
 
