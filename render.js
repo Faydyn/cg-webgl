@@ -169,12 +169,6 @@ const render = (timestamp, previousTimestamp) => {
 	let modelMatrix = mat4(1.0) // clean modelMatrix, rotational progress is saved in own variable
 	uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
-	// TODO: START - Remove Temp Coord System at end
-	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
-	gl.bindVertexArray(vao)
-	gl.drawArrays(gl.LINES, numVertices, 6)
-	// TODO: END - Remove Temp Coord System at end
-
 	// 1c - BEGINN - Aendern der Modelmatrix der Pyramid
 	const t1 = translate(0, -0.75, 0)
 	const t2 = scalem(2.0, 2.0, 2.0)
