@@ -20,6 +20,9 @@
  * 5. Generate Sun as a Lightsrc (3D Sphere)
  *
  * 6. Remove tmp Coord Sys
+ *
+ * Question:
+ * First Transpose, then scale or vice versa (care with opengl backwards shit)
  */
 
 let gl
@@ -29,7 +32,8 @@ let vao
 let vaoBunny
 
 let positions = []
-let colors = []
+const colors = Array(36).fill(Array(3).fill(0.6))
+let normals = []
 
 let bunnyVertices
 const numVertices = 36
@@ -60,16 +64,16 @@ const vertices = [
 	vec3(0.25, 0.25, 0.25), //6
 	vec3(0.5, 0, 0.5) // 7
 ]
-
-const vertexColors = [
-	[0.0, 0.0, 0.0, 1.0], // black
-	[1.0, 0.0, 0.0, 1.0], // red
-	[1.0, 1.0, 0.0, 1.0], // yellow
-	[0.0, 1.0, 0.0, 1.0], // green
-	[0.0, 0.0, 1.0, 1.0], // blue
-	[1.0, 0.0, 1.0, 1.0], // magenta
-	[0.0, 1.0, 1.0, 1.0], // cyan
-	[1.0, 1.0, 1.0, 1.0] // white
+// 2/3 = 0.25/sqrt((0.25 * 0.25)* 2 + 0.125*0.125), x=z=0.25=2y, since its half angle
+const vertexNormals = [
+	vec3(-0.25, -(2 / 3), -0.25), //0
+	vec3(-0.25, 2 / 3, -0.25), //1
+	vec3(0.25, 2 / 3, -0.25), // 2
+	vec3(0.25, -(2 / 3), -0.25), //3
+	vec3(-0.25, -(2 / 3), 0.25), // 4
+	vec3(-0.25, 2 / 3, 0.25), //5
+	vec3(0.25, 2 / 3, 0.25), //6
+	vec3(0.25, -(2 / 3), 0.25) // 7
 ]
 
 const allSidesVertixOrder = [
@@ -85,7 +89,7 @@ const quad = (a, b, c, d) => {
 	let indices = [a, b, c, a, c, d]
 	indices.forEach(i => {
 		positions.push(vertices[i])
-		colors.push(vertexColors[i])
+		normals.push(vertexNormals[i])
 	})
 }
 
@@ -94,7 +98,7 @@ const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side i
 
 const setUpMatrices = canvas => {
 	// 1b - BEGINN - Erstellen der Matrizen
-	const eyeVec = vec3(0.0, 1.5, 2.5)
+	const eyeVec = vec3(0.0, 1.0, 2.0)
 	const lookVec = vec3(0.0, 0.0, 0.0)
 	const upVec = vec3(0.0, 1.0, 0.0)
 
@@ -127,6 +131,12 @@ const createGeometry = () => {
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW)
 	gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.enableVertexAttribArray(1)
+
+	let normalsBuffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer)
+	gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW)
+	gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
+	gl.enableVertexAttribArray(2)
 }
 
 const loadModel = () => {
@@ -155,7 +165,7 @@ const loadModel = () => {
 	gl.enableVertexAttribArray(2)
 }
 
-const rotateAllAxis = (matrix, x, y, z) => mult(rotateZ(z), mult(rotateY(y), mult(rotateX(x), matrix)))
+const rotateAllAxis = (matrix, x, y, z) => mult(rotateX(x), mult(rotateY(y), mult(rotateZ(z), matrix)))
 
 const render = (timestamp, previousTimestamp) => {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -166,13 +176,11 @@ const render = (timestamp, previousTimestamp) => {
 	gl.uniform3fv(uniformLocationID, flatten(light))
 	// 3b - ENDE
 
-	let modelMatrix = mat4(1.0) // clean modelMatrix, rotational progress is saved in own variable
 	uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
-
 	// 1c - BEGINN - Aendern der Modelmatrix der Pyramid
 	const t1 = scalem(2.0, 2.0, 2.0)
 	const t2 = translate(0, -0.75, 0)
-	modelMatrix = mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
+	let modelMatrix = mult(t2, t1) // nicht kommutativ!!!!!
 
 	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
 	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getValues())
@@ -182,8 +190,7 @@ const render = (timestamp, previousTimestamp) => {
 	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
 	// 1c - ENDE - Aendern der Modelmatrix
 
-	modelMatrix = mat4(1.0)
-	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getValues())
+	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState.getValues()) //reset modelMatrix & rotate it
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
