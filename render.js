@@ -1,4 +1,6 @@
 'use strict'
+/* jshint 	esversion: 6 */
+/* jshint 	-W033 */
 /* jshint	-W097 */
 /* global 	console, vec3, lookAt, perspective, mat4, flatten, loadMeshData, mult, rotateX, rotateY, rotateZ,
 			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders */
