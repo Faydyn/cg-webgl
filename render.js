@@ -32,9 +32,22 @@
 let gl
 let program
 
-let modelMatrix
 let vao
 let vaoBunny
+
+const rotationalState = {
+	x: 0,
+	y: 0,
+	z: 0,
+	increment: function (a, b, c) {
+		this.x += a
+		this.y += b
+		this.z += c
+	},
+	getRotationalState: function () {
+		return [this.x, this.y, this.z]
+	},
+}
 
 let positions = []
 let colors = []
@@ -93,7 +106,6 @@ const setUpMatrices = canvas => {
 
 	let viewMatrix = lookAt(eyeVec, lookVec, upVec)
 	let projectionMatrix = perspective(60.0, canvas.width / canvas.height, 0.1, 100.0)
-	modelMatrix = mat4(1.0)
 
 	let uniformLocationID = gl.getUniformLocation(program, 'viewMatrix')
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(viewMatrix))
@@ -169,7 +181,8 @@ const render = (timestamp, previousTimestamp) => {
 	let uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
 	let light = getLightPosition()
-	console.log(light)
+
+	let modelMatrix = mat4(1.0) // clean modelMatrix, rotational progress is saved in own variable
 
 	// TODO: START - Remove Temp Coord System at end
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
@@ -177,27 +190,28 @@ const render = (timestamp, previousTimestamp) => {
 	gl.drawArrays(gl.LINES, numVertices, 6)
 	// TODO: END - Remove Temp Coord System at end
 
-	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
-	modelMatrix = rotateAllAxis(modelMatrix, ...getRotation())
+	// 1c - BEGINN - Aendern der Modelmatrix der Pyramid
+	const t1 = translate(0, -0.75, 0)
+	const t2 = scalem(2.0, 2.0, 2.0)
+	modelMatrix = mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
+	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getRotationalState())
+
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+	gl.bindVertexArray(vao)
+	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
+	// 1c - ENDE - Aendern der Modelmatrix
+
+	modelMatrix = mat4(1.0)
+	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getRotationalState())
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
 
+	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
+
+	rotationalState.increment(...getRotation().map(x => parseFloat(x)))
+
 	// 2b - ENDE
-
-	// 1c - BEGINN - Aendern der Modelmatrix der Pyramide
-	const t1 = translate(0, -0.75, 0)
-	const t2 = scalem(2.0, 2.0, 2.0)
-	let modelMatrixTransf = mult(t1, modelMatrix) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
-	modelMatrixTransf = rotateAllAxis(modelMatrixTransf, ...getRotation())
-	modelMatrixTransf = mult(t2, modelMatrixTransf)
-
-	//modelMatrixTransf = mult(t1, rotateAllAxis(mult(translate(0, 0.75, 0), modelMatrix), getRotation()))
-	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrixTransf))
-	gl.bindVertexArray(vao)
-	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
-
-	// 1c - ENDE - Aendern der Modelmatrix
 
 	window.requestAnimFrame(time => render(time, timestamp))
 }
