@@ -170,8 +170,8 @@ const render = (timestamp, previousTimestamp) => {
 	uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 
 	// 1c - BEGINN - Aendern der Modelmatrix der Pyramid
-	const t1 = translate(0, -0.75, 0)
-	const t2 = scalem(2.0, 2.0, 2.0)
+	const t1 = scalem(2.0, 2.0, 2.0)
+	const t2 = translate(0, -0.75, 0)
 	modelMatrix = mult(t2, mult(t1, modelMatrix)) // neue Matrix fuer die Transformationen, um den State der globalen nicht zu 'verunreinigen'
 
 	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
