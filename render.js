@@ -37,20 +37,21 @@ let sideNormals = []
 let bunnyVertices
 const numVertices = 36
 
-const rotationalState = {
-	// 2b - Helper
-	x: 0,
-	y: 0,
-	z: 0,
-	increment(a, b, c) {
-		this.x += a
-		this.y += b
-		this.z += c
-	},
-	getValues() {
-		return [this.x, this.y, this.z]
-	}
-}
+let rotationalState = vec3(0.0)
+// const rotationalState = {
+// 	// 2b - Helper
+// 	x: 0,
+// 	y: 0,
+// 	z: 0,
+// 	increment(a, b, c) {
+// 		this.x += a
+// 		this.y += b
+// 		this.z += c
+// 	},
+// 	getValues() {
+// 		return [this.x, this.y, this.z]
+// 	}
+// }
 
 const allSideNormalsOrder = [
 	[0, 3, 1], // vorn
@@ -107,7 +108,6 @@ const quad = (a, b, c, d) => {
 		positions.push(vertices[i])
 		normals.push(getVertexNormalFromAdjacentSides(...mapVertexAdjacentSides[i])) // get normal for each Vertex with helper function and map.
 	})
-	console.log(sideNormals)
 }
 
 const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side is a list of 4 Vertices
@@ -134,8 +134,6 @@ const setUpMatrices = canvas => {
 const createGeometry = () => {
 	makeAllSideNormals(allSideNormalsOrder) // make normals for each of the 6 sides
 	makePyramid(allSidesVertixOrder) // 1a
-
-	console.log(normals)
 
 	vao = gl.createVertexArray()
 	gl.bindVertexArray(vao)
@@ -203,20 +201,19 @@ const render = (timestamp, previousTimestamp) => {
 	let modelMatrix = mult(t2, t1) // nicht kommutativ!!!!!
 
 	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
-	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState.getValues())
+	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState)
 
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vao)
 	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
 	// 1c - ENDE - Aendern der Modelmatrix
-	gl.drawArrays(gl.LINES, numVertices, numVertices + 1)
 
-	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState.getValues()) //reset modelMatrix & rotate it
+	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState) //reset modelMatrix & rotate it
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
 
-	rotationalState.increment(...getRotation().map(x => parseFloat(x))) // (de-)increase rotation state for next frame
+	rotationalState = add(rotationalState, vec3(...getRotation().map(x => parseFloat(x)))) // (de-)increase rotation state for next frame
 	// 2b - ENDE
 
 	window.requestAnimFrame(time => render(time, timestamp))
