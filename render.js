@@ -3,13 +3,12 @@
 /* jshint 	-W033 */
 /* jshint	-W097 */
 /* global 	console, vec3, lookAt, perspective, mat4, flatten, loadMeshData, mult, rotateX, rotateY, rotateZ,
-			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders 
-			cross, normalize, subtract, initShaders*/
+			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders,
+			cross, normalize, subtract, initShaders, add*/
 
 //TODO:
 /**
  * 2. Finish Phong Shading:
- * 2.1 REWORK FOR BUNNY
  * 2.2 ADD NORMALS TO PYRAMID, IMPLEMENT FOR PYRAMID
  * 		SRC:
  * 		I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
@@ -20,10 +19,8 @@
  *
  * 5. Generate Sun as a Lightsrc (3D Sphere)
  *
- * 6. Remove tmp Coord Sys
  *
  * Question:
- * First Transpose, then scale or vice versa (care with opengl backwards shit)
  */
 
 let gl
@@ -35,6 +32,7 @@ let vaoBunny
 let positions = []
 const colors = Array(36).fill(Array(3).fill(0.6))
 let normals = []
+let sideNormals = []
 
 let bunnyVertices
 const numVertices = 36
@@ -54,27 +52,44 @@ const rotationalState = {
 	}
 }
 
+const allSideNormalsOrder = [
+	[0, 3, 1], // vorn
+	[2, 3, 6], // rechts
+	[0, 4, 3], // unten
+	[1, 2, 5], // oben
+	[4, 5, 7], // hinten
+	[0, 1, 4] // links
+]
+
+const makeSideNormal = (a, b, c) =>
+	sideNormals.push(new normalize(cross(subtract(vertices[b], vertices[a]), subtract(vertices[c], vertices[a]))))
+
+const makeAllSideNormals = allSides => allSides.forEach(side => makeSideNormal(...side))
+
+const mapVertexAdjacentSides = [
+	[0, 2, 5], // vorn, unten, links
+	[0, 3, 5], // vorn, oben, links
+	[0, 1, 3], // vorn, oben, rechts
+	[0, 1, 2], // vorn, unten, rechts
+	[4, 2, 5], // hinten, unten, links
+	[4, 3, 5], // hinten, oben, links
+	[4, 1, 3], // hinten, oben, rechts
+	[4, 1, 2] // hinten, unten, rechts
+]
+
+const getVertexNormalFromAdjacentSides = (a, b, c) =>
+	new normalize(add(add(sideNormals[a], sideNormals[b]), sideNormals[c])) // map-element gives indices of all 3 adjacent sides' normals (calculated before)
+
 // 1a - BEGINN - Erstellen der Dreiecke fuer die Flaechen
 const vertices = [
-	vec3(-0.5, 0, -0.5), //0
-	vec3(-0.25, 0.25, -0.25), //1
-	vec3(0.25, 0.25, -0.25), // 2
-	vec3(0.5, 0, -0.5), //3
-	vec3(-0.5, 0, 0.5), // 4
-	vec3(-0.25, 0.25, 0.25), //5
-	vec3(0.25, 0.25, 0.25), //6
-	vec3(0.5, 0, 0.5) // 7
-]
-//
-const vertexNormals = [
-	vec3(-0.25, -0.375, -0.25), //0
-	vec3(-0.25, 0.375, -0.25), //1
-	vec3(0.25, 0.375, -0.25), // 2
-	vec3(0.25, -0.375, -0.25), //3
-	vec3(-0.25, -0.375, 0.25), // 4
-	vec3(-0.25, 0.375, 0.25), //5
-	vec3(0.25, 0.375, 0.25), //6
-	vec3(0.25, -0.375, 0.25) // 7
+	vec3(-0.5, 0, 0.5), //0
+	vec3(-0.25, 0.25, 0.25), //1
+	vec3(0.25, 0.25, 0.25), // 2
+	vec3(0.5, 0, 0.5), //3
+	vec3(-0.5, 0, -0.5), // 4
+	vec3(-0.25, 0.25, -0.25), //5
+	vec3(0.25, 0.25, -0.25), //6
+	vec3(0.5, 0, -0.5) // 7
 ]
 
 const allSidesVertixOrder = [
@@ -90,8 +105,9 @@ const quad = (a, b, c, d) => {
 	let indices = [a, b, c, a, c, d]
 	indices.forEach(i => {
 		positions.push(vertices[i])
-		normals.push(vertexNormals[i])
+		normals.push(getVertexNormalFromAdjacentSides(...mapVertexAdjacentSides[i])) // get normal for each Vertex with helper function and map.
 	})
+	console.log(sideNormals)
 }
 
 const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side is a list of 4 Vertices
@@ -116,7 +132,10 @@ const setUpMatrices = canvas => {
 }
 
 const createGeometry = () => {
+	makeAllSideNormals(allSideNormalsOrder) // make normals for each of the 6 sides
 	makePyramid(allSidesVertixOrder) // 1a
+
+	console.log(normals)
 
 	vao = gl.createVertexArray()
 	gl.bindVertexArray(vao)
@@ -190,6 +209,7 @@ const render = (timestamp, previousTimestamp) => {
 	gl.bindVertexArray(vao)
 	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
 	// 1c - ENDE - Aendern der Modelmatrix
+	gl.drawArrays(gl.LINES, numVertices, numVertices + 1)
 
 	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState.getValues()) //reset modelMatrix & rotate it
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
