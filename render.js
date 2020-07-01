@@ -3,7 +3,8 @@
 /* jshint 	-W033 */
 /* jshint	-W097 */
 /* global 	console, vec3, lookAt, perspective, mat4, flatten, loadMeshData, mult, rotateX, rotateY, rotateZ,
-			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders */
+			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders 
+			cross, normalize, subtract, initShaders*/
 
 //TODO:
 /**
