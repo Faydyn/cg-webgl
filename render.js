@@ -9,7 +9,6 @@
 //TODO:
 /**
  * 2. Finish Phong Shading:
- * 2.2 ADD NORMALS TO PYRAMID, IMPLEMENT FOR PYRAMID
  * 		SRC:
  * 		I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
  * 		II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
@@ -19,6 +18,7 @@
  *
  * 5. Generate Sun as a Lightsrc (3D Sphere)
  *
+ * Double check if pyramidNormals are correct.
  *
  * Question:
  */
@@ -28,30 +28,15 @@ let program
 
 let vao
 let vaoBunny
-
-let positions = []
-const colors = Array(36).fill(Array(3).fill(0.6))
-let normals = []
-let sideNormals = []
-
-let bunnyVertices
-const numVertices = 36
-
 let rotationalState = vec3(0.0)
-// const rotationalState = {
-// 	// 2b - Helper
-// 	x: 0,
-// 	y: 0,
-// 	z: 0,
-// 	increment(a, b, c) {
-// 		this.x += a
-// 		this.y += b
-// 		this.z += c
-// 	},
-// 	getValues() {
-// 		return [this.x, this.y, this.z]
-// 	}
-// }
+
+const positions = [] //doesnt get reassign (the list itself)
+const colors = Array(36).fill(Array(3).fill(0.6))
+const normals = []
+const sideNormals = []
+
+const numVertices = 36
+let bunnyVertices
 
 const allSideNormalsOrder = [
 	[0, 3, 1], // vorn
