@@ -11,34 +11,25 @@
     layout(location = 1) in vec3 aColor;  
     layout(location = 2) in vec3 aNormals;  
 
-    out vec3 color;
-    
     uniform mat4 viewMatrix;    
     uniform mat4 modelMatrix;
     uniform mat4 projectionMatrix; 
-
     uniform vec3 lightPos;
+    uniform vec3 eyePos;
+
+    out vec3 color;
+    out vec3 normalInterp;
+    out vec3 light;
+    out vec3 view;
+    out vec3 position;
 
     void main() { 
+     
+      normalInterp = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
+      position = (modelMatrix * vec4( aPos, 1.0 )).xyz;
+      light = (viewMatrix * vec4(normalize(lightPos-aPos.xyz),0.0)).xyz;
       color = aColor;
-    
-      vec3 I_ambient = vec3(0.2,0.2,0.2);
-      vec3 phong_ambient = aColor * I_ambient; 
-
-      vec3 I_diffuse = vec3(0.7,0.7,0.7);
-
-      vec3 light_direction = (viewMatrix * vec4(normalize(lightPos-aPos.xyz),0.0)).xyz;
-      vec3 normal = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
-
-      float lambert = dot(light_direction, normal); // get Light
-      vec3 phong_diffuse = aColor * I_diffuse * lambert;
-
-
-      vec3 I_spec = vec3(0.7,0.7,0.7);
-      vec3 phong_spec = aColor * I_diffuse ;
-
-
-      color = phong_ambient + phong_diffuse + phong_spec;
+      view = eyePos - aPos;
 
       gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aPos, 1.0);
     }
@@ -46,12 +37,31 @@
   <script type="x-shader/x-fragment" id="fragment-shader">#version 300 es
 
     precision mediump float;  
-  
+    
+    uniform vec3 I_diffuse;
+    uniform vec3 I_spec;
+    uniform float shiny;
+
     in vec3 color;
+    in vec3 normalInterp;
+    in vec3 position;
+    in vec3 light;
+    in vec3 view;
     out vec4 fragColor;  
  
     void main() {
-      fragColor = vec4(color, 1.0);
+      vec3 normal = normalize(normalInterp);
+      vec3 I_ambient = vec3(0.3,0.3,0.3);
+      vec3 phong_ambient = color * I_ambient; 
+
+      float lambert = dot(light, normal); 
+  
+      vec3 phong_diffuse = color * I_diffuse * lambert;
+
+      vec3 reflected = reflect(-normalize(light), normal);
+      vec3 phong_spec = color * I_diffuse * pow(max(dot(reflected, view), 0.0),shiny);
+
+      fragColor = vec4(phong_ambient + phong_diffuse + phong_spec, 1.0);
     }
     </script>
 

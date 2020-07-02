@@ -193,6 +193,7 @@ const drawSun = () => {
 	const sun = {
 		pos: [],
 		colors: Array(36).fill(vec3(1.0, 1.0, 0.0)),
+		normals: Array(36).fill(vec3(1.0, 1.0, 0.0)),
 		vertexCount: 36,
 		quads(a, b, c, d) {
 			let indices = [a, b, c, a, c, d]
@@ -228,11 +229,11 @@ const drawSun = () => {
 	gl.enableVertexAttribArray(1)
 
 	// Braucht keine Normalen, das Lichtquelle selbst
-	// let normalsBuffer = gl.createBuffer()
-	// gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer)
-	// gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.normals), gl.STATIC_DRAW)
-	// gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
-	// gl.enableVertexAttribArray(2)
+	let normalsBuffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer)
+	gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.normals), gl.STATIC_DRAW)
+	gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
+	gl.enableVertexAttribArray(2)
 
 	// HELPER FOR CHECKING NORMALS FOR POINTS!!!!
 	const zip = (arr1, arr2) => arr1.map((k, i) => [k, arr2[i]])
@@ -281,6 +282,10 @@ const render = () => {
 	gl.uniform3fv(uniformLocationID, flatten(light))
 	// 3b - ENDE
 
+	let uniformDiffuseID = gl.getUniformLocation(program, 'I_diffuse')
+	let uniformSpecID = gl.getUniformLocation(program, 'I_spec')
+	let uniformShinyID = gl.getUniformLocation(program, 'shiny')
+
 	uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
 	// 1c - BEGINN - Aendern der Modelmatrix der Pyramid
 	const t1 = scalem(2.0, 2.0, 2.0)
@@ -289,13 +294,22 @@ const render = () => {
 
 	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
 	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState)
-
+	// 3c - BEGINN
+	gl.uniform3fv(uniformDiffuseID, flatten(vec3(0.9, 0.9, 0.9)))
+	gl.uniform3fv(uniformSpecID, flatten(vec3(0.4, 0.4, 0.4)))
+	gl.uniform1f(uniformShinyID, 1.0)
+	// 3c - ENDE
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vao)
 	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
 	// 1c - ENDE - Aendern der Modelmatrix
 
 	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState) //reset modelMatrix & rotate it
+	// 3c - BEGINN
+	gl.uniform3fv(uniformDiffuseID, flatten(vec3(0.7, 0.7, 0.7)))
+	gl.uniform3fv(uniformSpecID, flatten(vec3(0.7, 0.7, 0.7)))
+	gl.uniform1f(uniformShinyID, 3.0)
+	// 3c - ENDE
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
