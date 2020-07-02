@@ -13,10 +13,11 @@
  * 		I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
  * 		II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
  * 		III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
+ * 		IV.  https://threejs.org/docs/#api/en/geometries/SphereGeometry
  *
  * 4. Pay Attention to material parameters like "diffuse, spectular, shininess"
  *
- * 5. Generate Sun as a Lightsrc (3D Sphere)
+ * 5. Make Sun be a Sphere!!!!!!
  *
  * Double check if pyramidNormals are correct.
  *
@@ -28,7 +29,9 @@ let program
 
 let vao
 let vaoBunny
+let vaoSun
 let rotationalState = vec3(0.0)
+let sunPosition = vec3(0.0)
 
 const positions = [] //doesnt get reassign (the list itself)
 const colors = Array(36).fill(Array(3).fill(0.6))
@@ -37,6 +40,7 @@ const sideNormals = []
 
 const numVertices = 36
 let bunnyVertices
+let sunVertices
 
 const allSideNormalsOrder = [
 	[0, 3, 1], // vorn
@@ -169,14 +173,78 @@ const loadModel = () => {
 	gl.enableVertexAttribArray(2)
 }
 
+// 4 - BEGINN
+const drawSun = () => {
+	vaoSun = gl.createVertexArray()
+	gl.bindVertexArray(vaoSun)
+
+	// TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	let coords = [
+		vec3(-0.25, -0.25, 0.25),
+		vec3(-0.25, 0.25, 0.25),
+		vec3(0.25, 0.25, 0.25),
+		vec3(0.25, -0.25, 0.25),
+		vec3(-0.25, -0.25, -0.25),
+		vec3(-0.25, 0.25, -0.25),
+		vec3(0.25, 0.25, -0.25),
+		vec3(0.25, -0.25, -0.25)
+	]
+
+	const sun = {
+		pos: [],
+		colors: Array(36).fill(vec3(1.0, 1.0, 0.0)),
+		vertexCount: 36,
+		quads(a, b, c, d) {
+			let indices = [a, b, c, a, c, d]
+			indices.forEach(i => {
+				this.pos.push(coords[i])
+			})
+		}
+	}
+	let me = () => {
+		sun.quads(0, 3, 2, 1)
+		sun.quads(2, 3, 7, 6)
+		sun.quads(0, 4, 7, 3)
+		sun.quads(1, 2, 6, 5)
+		sun.quads(4, 5, 6, 7)
+		sun.quads(0, 1, 5, 4)
+	}
+
+	me()
+	console.log(sun)
+
+	sunVertices = sun.vertexCount
+
+	// TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	let vertexBuffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+	gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.pos), gl.STATIC_DRAW)
+	gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0)
+	gl.enableVertexAttribArray(0)
+
+	let vboColor = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, vboColor)
+	gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.colors), gl.STATIC_DRAW)
+	gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
+	gl.enableVertexAttribArray(1)
+
+	// Braucht keine Normalen, das Lichtquelle selbst
+	// let normalsBuffer = gl.createBuffer()
+	// gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer)
+	// gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.normals), gl.STATIC_DRAW)
+	// gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
+	// gl.enableVertexAttribArray(2)
+}
+// 4 - ENDE
+
 const rotateAllAxis = (matrix, x, y, z) => mult(rotateX(x), mult(rotateY(y), mult(rotateZ(z), matrix)))
 
-const render = (timestamp, previousTimestamp) => {
+const render = () => {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	// 3b - BEGINN
 	let uniformLocationID = gl.getUniformLocation(program, 'lightPos')
-	let light = getLightPosition() // nicht pro Frame, d.h. die hier erhaltene Position ist immer absolut
+	let light = sunPosition // nicht pro Frame, d.h. die hier erhaltene Position ist immer absolut
 	gl.uniform3fv(uniformLocationID, flatten(light))
 	// 3b - ENDE
 
@@ -199,10 +267,17 @@ const render = (timestamp, previousTimestamp) => {
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
 
+	modelMatrix = mult(translate(...sunPosition), mat4(1.0)) // nicht kommutativ!!!!!
+	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
+	gl.bindVertexArray(vaoSun)
+	gl.drawArrays(gl.TRIANGLES, 0, sunVertices) // UNCOMMENT WHEN ACTUAL VERTICES ARE THERE!!
+
 	rotationalState = add(rotationalState, vec3(...getRotation().map(x => parseFloat(x)))) // (de-)increase rotation state for next frame
 	// 2b - ENDE
 
-	window.requestAnimFrame(time => render(time, timestamp))
+	sunPosition = getLightPosition()
+
+	window.requestAnimFrame(() => render())
 }
 
 window.onload = () => {
@@ -215,10 +290,11 @@ window.onload = () => {
 	program = initShaders(gl, 'vertex-shader', 'fragment-shader')
 
 	createGeometry() // 1a
-	loadModel() // 2a
+	loadModel() // 2a]
+	drawSun()
 
 	gl.useProgram(program)
 
 	setUpMatrices(canvas) // 1b
-	render(0, 0) // 1c, 2b
+	render() // 1c, 2b
 }
