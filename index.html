@@ -31,9 +31,11 @@
       vec3 normal = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
 
       float lambert = dot(light_direction, normal); // get Light
-      vec3 phong_diffuse = aColor + I_diffuse * lambert;
+      vec3 phong_diffuse = aColor * I_diffuse * lambert;
 
-      color = phong_ambient + phong_diffuse;
+
+
+      color = phong_ambient + phong_diffuse;// + phong_spec;
 
       gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aPos, 1.0);
     }
