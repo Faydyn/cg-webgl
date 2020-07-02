@@ -26,9 +26,11 @@
       vec3 phong_ambient = aColor * I_ambient; 
 
       vec3 I_diffuse = vec3(0.7);
+
+      vec3 light_direction = (viewMatrix * vec4(normalize(lightPos-aPos.xyz),0.0)).xyz;
       vec3 normal = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
 
-      float lambert = dot(lightPos, normal); // get Light
+      float lambert = dot(light_direction, normal); // get Light
       vec3 phong_diffuse = aColor + I_diffuse * lambert;
 
       color = phong_ambient + phong_diffuse;
