@@ -47,6 +47,7 @@ const allSideNormalsOrder = [
 	[0, 1, 4] // links
 ]
 
+// crossproduct with right hand rule to get normal (gets divided by distance before)
 const makeSideNormal = (a, b, c) =>
 	sideNormals.push(new normalize(cross(subtract(vertices[b], vertices[a]), subtract(vertices[c], vertices[a]))))
 
