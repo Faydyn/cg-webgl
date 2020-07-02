@@ -324,7 +324,7 @@ window.onload = () => {
 	program = initShaders(gl, 'vertex-shader', 'fragment-shader')
 
 	createGeometry() // 1a
-	loadModel() // 2a]
+	loadModel() // 2a
 	drawSun()
 
 	gl.useProgram(program)

@@ -25,7 +25,7 @@
       vec3 I_ambient = vec3(0.2,0.2,0.2);
       vec3 phong_ambient = aColor * I_ambient; 
 
-      vec3 I_diffuse = vec3(0.7);
+      vec3 I_diffuse = vec3(0.7,0.7,0.7);
 
       vec3 light_direction = (viewMatrix * vec4(normalize(lightPos-aPos.xyz),0.0)).xyz;
       vec3 normal = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
@@ -34,8 +34,11 @@
       vec3 phong_diffuse = aColor * I_diffuse * lambert;
 
 
+      vec3 I_spec = vec3(0.7,0.7,0.7);
+      vec3 phong_spec = aColor * I_diffuse ;
 
-      color = phong_ambient + phong_diffuse;// + phong_spec;
+
+      color = phong_ambient + phong_diffuse + phong_spec;
 
       gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aPos, 1.0);
     }
