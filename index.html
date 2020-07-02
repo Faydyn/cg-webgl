@@ -21,17 +21,15 @@
     out vec3 normalInterp;
     out vec3 light;
     out vec3 view;
-    out vec3 position;
 
     void main() { 
+      gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aPos, 1.0);
      
       normalInterp = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
-      position = (modelMatrix * vec4( aPos, 1.0 )).xyz;
       light = (viewMatrix * vec4(normalize(lightPos-aPos.xyz),0.0)).xyz;
       color = aColor;
       view = eyePos - aPos;
-
-      gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aPos, 1.0);
+      
     }
     </script>
   <script type="x-shader/x-fragment" id="fragment-shader">#version 300 es
@@ -44,7 +42,6 @@
 
     in vec3 color;
     in vec3 normalInterp;
-    in vec3 position;
     in vec3 light;
     in vec3 view;
     out vec4 fragColor;  
@@ -54,12 +51,12 @@
       vec3 I_ambient = vec3(0.3,0.3,0.3);
       vec3 phong_ambient = color * I_ambient; 
 
-      float lambert = dot(light, normal); 
+      float lambert = dot(normalize(light), normal); 
   
       vec3 phong_diffuse = color * I_diffuse * lambert;
 
       vec3 reflected = reflect(-normalize(light), normal);
-      vec3 phong_spec = color * I_diffuse * pow(max(dot(reflected, view), 0.0),shiny);
+      vec3 phong_spec = color * I_spec * pow(max(dot(reflected, view), 0.0),shiny);
 
       fragColor = vec4(phong_ambient + phong_diffuse + phong_spec, 1.0);
     }

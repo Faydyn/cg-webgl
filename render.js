@@ -15,13 +15,13 @@
  * 		III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
  * 		IV.  https://threejs.org/docs/#api/en/geometries/SphereGeometry
  *
- * 4. Pay Attention to material parameters like "diffuse, spectular, shininess"
  *
  * 5. Make Sun be a Sphere!!!!!!
  *
- * Double check if pyramidNormals are correct.
  *
  * Question:
+ *
+ * REFACTORING!!
  */
 
 let gl
@@ -110,7 +110,7 @@ const setUpMatrices = canvas => {
 	const upVec = vec3(0.0, 1.0, 0.0)
 
 	let viewMatrix = lookAt(eyeVec, lookVec, upVec)
-	let projectionMatrix = perspective(60.0, canvas.width / canvas.height, 0.1, 100.0)
+	let projectionMatrix = perspective(90.0, canvas.width / canvas.height, 0.1, 100.0)
 
 	let uniformLocationID = gl.getUniformLocation(program, 'viewMatrix')
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(viewMatrix))
@@ -212,7 +212,6 @@ const drawSun = () => {
 	}
 
 	me()
-
 	sunVertices = sun.vertexCount
 
 	// TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -234,40 +233,6 @@ const drawSun = () => {
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.normals), gl.STATIC_DRAW)
 	gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.enableVertexAttribArray(2)
-
-	// HELPER FOR CHECKING NORMALS FOR POINTS!!!!
-	const zip = (arr1, arr2) => arr1.map((k, i) => [k, arr2[i]])
-	let zipped = zip(positions, normals)
-	let alreadyViewed = []
-	let foundShit = []
-
-	function searchForArray(haystack, needle) {
-		var i, j, current
-		for (i = 0; i < haystack.length; ++i) {
-			if (needle.length === haystack[i].length) {
-				current = haystack[i]
-				for (j = 0; j < needle.length && needle[j] === current[j]; ++j);
-				if (j === needle.length) return i
-			}
-		}
-		return -1
-	}
-
-	zipped.forEach((pair, i) => {
-		let foundOnIndex = searchForArray(alreadyViewed, pair[0])
-		if (foundOnIndex === -1) {
-			alreadyViewed.push(pair[0])
-			foundShit.push(pair[1])
-		} else {
-			let truly = searchForArray(foundShit, pair[1])
-			if (truly === -1) {
-				foundShit[foundOnIndex].concat([pair[1]])
-			}
-		}
-	})
-	console.log(zip(alreadyViewed, foundShit))
-	console.log(sideNormals)
-	// HELPER FOR CHECKING NORMALS FOR POINTS!!!!
 }
 // 4 - ENDE
 
@@ -279,7 +244,7 @@ const render = () => {
 	// 3b - BEGINN
 	let uniformLocationID = gl.getUniformLocation(program, 'lightPos')
 	let light = sunPosition // nicht pro Frame, d.h. die hier erhaltene Position ist immer absolut
-	gl.uniform3fv(uniformLocationID, flatten(light))
+	gl.uniform3fv(uniformLocationID, light)
 	// 3b - ENDE
 
 	let uniformDiffuseID = gl.getUniformLocation(program, 'I_diffuse')
@@ -295,9 +260,9 @@ const render = () => {
 	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
 	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState)
 	// 3c - BEGINN
-	gl.uniform3fv(uniformDiffuseID, flatten(vec3(0.9, 0.9, 0.9)))
-	gl.uniform3fv(uniformSpecID, flatten(vec3(0.4, 0.4, 0.4)))
-	gl.uniform1f(uniformShinyID, 1.0)
+	gl.uniform3fv(uniformDiffuseID, vec3(0.9, 0.9, 0.9))
+	gl.uniform3fv(uniformSpecID, vec3(0.4, 0.4, 0.4))
+	gl.uniform1f(uniformShinyID, 0.2)
 	// 3c - ENDE
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vao)
@@ -308,7 +273,7 @@ const render = () => {
 	// 3c - BEGINN
 	gl.uniform3fv(uniformDiffuseID, flatten(vec3(0.7, 0.7, 0.7)))
 	gl.uniform3fv(uniformSpecID, flatten(vec3(0.7, 0.7, 0.7)))
-	gl.uniform1f(uniformShinyID, 3.0)
+	gl.uniform1f(uniformShinyID, 1.0)
 	// 3c - ENDE
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
