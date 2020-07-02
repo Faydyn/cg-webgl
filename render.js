@@ -180,14 +180,14 @@ const drawSun = () => {
 
 	// TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	let coords = [
-		vec3(-0.25, -0.25, 0.25),
-		vec3(-0.25, 0.25, 0.25),
-		vec3(0.25, 0.25, 0.25),
-		vec3(0.25, -0.25, 0.25),
-		vec3(-0.25, -0.25, -0.25),
-		vec3(-0.25, 0.25, -0.25),
-		vec3(0.25, 0.25, -0.25),
-		vec3(0.25, -0.25, -0.25)
+		vec3(-0.1, -0.1, 0.1),
+		vec3(-0.1, 0.1, 0.1),
+		vec3(0.1, 0.1, 0.1),
+		vec3(0.1, -0.1, 0.1),
+		vec3(-0.1, -0.1, -0.1),
+		vec3(-0.1, 0.1, -0.1),
+		vec3(0.1, 0.1, -0.1),
+		vec3(0.1, -0.1, -0.1)
 	]
 
 	const sun = {
@@ -211,7 +211,6 @@ const drawSun = () => {
 	}
 
 	me()
-	console.log(sun)
 
 	sunVertices = sun.vertexCount
 
@@ -234,6 +233,40 @@ const drawSun = () => {
 	// gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.normals), gl.STATIC_DRAW)
 	// gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
 	// gl.enableVertexAttribArray(2)
+
+	// HELPER FOR CHECKING NORMALS FOR POINTS!!!!
+	const zip = (arr1, arr2) => arr1.map((k, i) => [k, arr2[i]])
+	let zipped = zip(positions, normals)
+	let alreadyViewed = []
+	let foundShit = []
+
+	function searchForArray(haystack, needle) {
+		var i, j, current
+		for (i = 0; i < haystack.length; ++i) {
+			if (needle.length === haystack[i].length) {
+				current = haystack[i]
+				for (j = 0; j < needle.length && needle[j] === current[j]; ++j);
+				if (j === needle.length) return i
+			}
+		}
+		return -1
+	}
+
+	zipped.forEach((pair, i) => {
+		let foundOnIndex = searchForArray(alreadyViewed, pair[0])
+		if (foundOnIndex === -1) {
+			alreadyViewed.push(pair[0])
+			foundShit.push(pair[1])
+		} else {
+			let truly = searchForArray(foundShit, pair[1])
+			if (truly === -1) {
+				foundShit[foundOnIndex].concat([pair[1]])
+			}
+		}
+	})
+	console.log(zip(alreadyViewed, foundShit))
+	console.log(sideNormals)
+	// HELPER FOR CHECKING NORMALS FOR POINTS!!!!
 }
 // 4 - ENDE
 
@@ -267,13 +300,14 @@ const render = () => {
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
 
+	rotationalState = add(rotationalState, vec3(...getRotation().map(x => parseFloat(x)))) // (de-)increase rotation state for next frame
+	// 2b - ENDE
+
+	// no rotation for sun
 	modelMatrix = mult(translate(...sunPosition), mat4(1.0)) // nicht kommutativ!!!!!
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoSun)
 	gl.drawArrays(gl.TRIANGLES, 0, sunVertices) // UNCOMMENT WHEN ACTUAL VERTICES ARE THERE!!
-
-	rotationalState = add(rotationalState, vec3(...getRotation().map(x => parseFloat(x)))) // (de-)increase rotation state for next frame
-	// 2b - ENDE
 
 	sunPosition = getLightPosition()
 
