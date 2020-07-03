@@ -6,17 +6,20 @@
 			getLightPosition, getRotation, translate, scalem, window, document, WebGLUtils, initShaders,
 			cross, normalize, subtract, initShaders, add*/
 
-//TODO:
 /**
- * 2. Finish Phong Shading:
- * 		SRC:
- * 		I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
- * 		II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
- * 		III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
- * 		IV.  https://threejs.org/docs/#api/en/geometries/SphereGeometry
+ * 	SRC:
+ * 	Uebungen 03 - 05
+ * 	Hilfe bei den Shadern
+ * 	- von Uebung 05,
+ * 	- Eduard Buch
+ * 	I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
+ * 	II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
+ * 	III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
+ * 	IV.  https://threejs.org/docs/#api/en/geometries/SphereGeometry
+ * 	V.   https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Smooth_Specular_Highlights
  *
  *
- * 5. Make Sun be a Sphere!!!!!!
+ *
  *
  *
  * Question:
@@ -30,6 +33,7 @@ let program
 let vao
 let vaoBunny
 let vaoSun
+
 let rotationalState = vec3(0.0)
 let sunPosition = vec3(0.0)
 
@@ -51,6 +55,7 @@ const allSideNormalsOrder = [
 	[0, 1, 4] // links
 ]
 
+// 3 - BEGINN - Ergaenzung der Normalen
 // crossproduct with right hand rule to get normal (gets divided by distance before)
 const makeSideNormal = (a, b, c) =>
 	sideNormals.push(new normalize(cross(subtract(vertices[b], vertices[a]), subtract(vertices[c], vertices[a]))))
@@ -70,6 +75,7 @@ const mapVertexAdjacentSides = [
 
 const getVertexNormalFromAdjacentSides = (a, b, c) =>
 	new normalize(add(add(sideNormals[a], sideNormals[b]), sideNormals[c])) // map-element gives indices of all 3 adjacent sides' normals (calculated before)
+// 3 - ENDE - Ergaenzung der Normalen
 
 // 1a - BEGINN - Erstellen der Dreiecke fuer die Flaechen
 const vertices = [
@@ -103,8 +109,8 @@ const quad = (a, b, c, d) => {
 const makePyramid = allSides => allSides.forEach(side => quad(...side)) //side is a list of 4 Vertices
 // 1a - ENDE - Erstellen der Dreiecke fuer die Flaechen
 
+// 1b - BEGINN - Erstellen der Matrizen
 const setUpMatrices = canvas => {
-	// 1b - BEGINN - Erstellen der Matrizen
 	const eyeVec = vec3(0.0, 1.0, 2.0)
 	const lookVec = vec3(0.0, 0.0, 0.0)
 	const upVec = vec3(0.0, 1.0, 0.0)
@@ -116,13 +122,14 @@ const setUpMatrices = canvas => {
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(viewMatrix))
 	uniformLocationID = gl.getUniformLocation(program, 'projectionMatrix')
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(projectionMatrix))
+	uniformLocationID = gl.getUniformLocation(program, 'eyePos')
+	gl.uniform3fv(uniformLocationID, eyeVec)
 	// modelMatrix wird in render() uebergeben, da dort die Transformationen sind
-
-	// 1b - ENDE - Erstellen der Matrizen
 }
+// 1b - ENDE - Erstellen der Matrizen
 
 const createGeometry = () => {
-	makeAllSideNormals(allSideNormalsOrder) // make normals for each of the 6 sides
+	makeAllSideNormals(allSideNormalsOrder) // Normalen fuer die 6 Seiten, sodass hier nach fuer die Vertices genutzt werden koennen
 	makePyramid(allSidesVertixOrder) // 1a
 
 	vao = gl.createVertexArray()
@@ -150,7 +157,7 @@ const createGeometry = () => {
 const loadModel = () => {
 	let meshData = loadMeshData()
 
-	bunnyVertices = meshData.vertexCount
+	bunnyVertices = meshData.vertexCount // fuer gl.drawArrays in render
 	vaoBunny = gl.createVertexArray()
 	gl.bindVertexArray(vaoBunny)
 
@@ -178,7 +185,7 @@ const drawSun = () => {
 	vaoSun = gl.createVertexArray()
 	gl.bindVertexArray(vaoSun)
 
-	// TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Leider keine echte Sonne mehr geworden
 	let coords = [
 		vec3(-0.1, -0.1, 0.1),
 		vec3(-0.1, 0.1, 0.1),
@@ -192,17 +199,14 @@ const drawSun = () => {
 
 	const sun = {
 		pos: [],
-		colors: Array(36).fill(vec3(1.0, 1.0, 0.0)),
-		normals: Array(36).fill(vec3(1.0, 1.0, 0.0)),
+		colors: Array(36).fill(vec3(0.0, 0.0, 0.0)), // BLACK HOLE SUN :)
 		vertexCount: 36,
 		quads(a, b, c, d) {
 			let indices = [a, b, c, a, c, d]
-			indices.forEach(i => {
-				this.pos.push(coords[i])
-			})
+			indices.forEach(i => this.pos.push(coords[i]))
 		}
 	}
-	let me = () => {
+	let fillSun = () => {
 		sun.quads(0, 3, 2, 1)
 		sun.quads(2, 3, 7, 6)
 		sun.quads(0, 4, 7, 3)
@@ -211,10 +215,10 @@ const drawSun = () => {
 		sun.quads(0, 1, 5, 4)
 	}
 
-	me()
+	fillSun()
+
 	sunVertices = sun.vertexCount
 
-	// TEMPORARY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	let vertexBuffer = gl.createBuffer()
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.pos), gl.STATIC_DRAW)
@@ -227,12 +231,7 @@ const drawSun = () => {
 	gl.vertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.enableVertexAttribArray(1)
 
-	// Braucht keine Normalen, das Lichtquelle selbst
-	let normalsBuffer = gl.createBuffer()
-	gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer)
-	gl.bufferData(gl.ARRAY_BUFFER, flatten(sun.normals), gl.STATIC_DRAW)
-	gl.vertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
-	gl.enableVertexAttribArray(2)
+	// Braucht keine Normalen, da Lichtquelle selbst
 }
 // 4 - ENDE
 
@@ -250,45 +249,47 @@ const render = () => {
 	let uniformDiffuseID = gl.getUniformLocation(program, 'I_diffuse')
 	let uniformSpecID = gl.getUniformLocation(program, 'I_spec')
 	let uniformShinyID = gl.getUniformLocation(program, 'shiny')
-
 	uniformLocationID = gl.getUniformLocation(program, 'modelMatrix')
-	// 1c - BEGINN - Aendern der Modelmatrix der Pyramid
+
+	// 1c - BEGINN - Aendern der Modelmatrix des Pyramidenstumpfs
 	const t1 = scalem(2.0, 2.0, 2.0)
 	const t2 = translate(0, -0.75, 0)
 	let modelMatrix = mult(t2, t1) // nicht kommutativ!!!!!
 
-	// 2b - BEGINN - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
-	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState)
-	// 3c - BEGINN
-	gl.uniform3fv(uniformDiffuseID, vec3(0.9, 0.9, 0.9))
-	gl.uniform3fv(uniformSpecID, vec3(0.4, 0.4, 0.4))
-	gl.uniform1f(uniformShinyID, 0.2)
-	// 3c - ENDE
+	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState) // 2b - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
+
+	gl.uniform3fv(uniformDiffuseID, vec3(0.8, 0.8, 0.8)) // 3c - Diffuse - Pyramidenstumpf
+	gl.uniform3fv(uniformSpecID, vec3(0.9, 0.9, 0.9)) // 3c - Specular - Pyramidenstumpf
+	gl.uniform1f(uniformShinyID, 3.8) // 3c - Shininess - Pyramidenstumpf
+
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vao)
-	gl.drawArrays(gl.TRIANGLES, 0, numVertices) // 1a - Anpassung der Flaechenanzahl
+	gl.drawArrays(gl.TRIANGLES, 0, numVertices)
 	// 1c - ENDE - Aendern der Modelmatrix
 
-	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState) //reset modelMatrix & rotate it
-	// 3c - BEGINN
-	gl.uniform3fv(uniformDiffuseID, flatten(vec3(0.7, 0.7, 0.7)))
-	gl.uniform3fv(uniformSpecID, flatten(vec3(0.7, 0.7, 0.7)))
-	gl.uniform1f(uniformShinyID, 1.0)
-	// 3c - ENDE
+	// 3a - BEGINN (passiert aber vor allem in den Shadern)
+	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState) // 2b - reset ModelMatrix und rotiere erneut, ohne vorherige Transformationen
+
+	gl.uniform3fv(uniformDiffuseID, vec3(0.9, 0.9, 0.9)) // 3c - Diffuse - Hase
+	gl.uniform3fv(uniformSpecID, vec3(0.7, 0.7, 0.7)) // 3c - Specular - Hase
+	gl.uniform1f(uniformShinyID, 0.95) // 3c - Shininess - Hase
+
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
 	gl.drawArrays(gl.TRIANGLES, 0, bunnyVertices)
+	// 3a - ENDE
 
-	rotationalState = add(rotationalState, vec3(...getRotation().map(x => parseFloat(x)))) // (de-)increase rotation state for next frame
-	// 2b - ENDE
+	rotationalState = add(rotationalState, vec3(...getRotation().map(x => parseFloat(x)))) // 2b - de-/inkrement fuer das naechste Rendern
 
-	// no rotation for sun
+	// Da Sonne nicht mitrotiert, kann dies auch nach dem anpassen des rotationalState geschehen
+	// 4 - BEGINN
 	modelMatrix = mult(translate(...sunPosition), mat4(1.0)) // nicht kommutativ!!!!!
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoSun)
-	gl.drawArrays(gl.TRIANGLES, 0, sunVertices) // UNCOMMENT WHEN ACTUAL VERTICES ARE THERE!!
+	gl.drawArrays(gl.TRIANGLES, 0, sunVertices)
 
-	sunPosition = getLightPosition()
+	sunPosition = getLightPosition() // Anpassen der Position fuer das naechste Rendern
+	// 4 - ENDE
 
 	window.requestAnimFrame(() => render())
 }
@@ -304,10 +305,10 @@ window.onload = () => {
 
 	createGeometry() // 1a
 	loadModel() // 2a
-	drawSun()
+	drawSun() // 4 (rudimentaer)
 
 	gl.useProgram(program)
 
 	setUpMatrices(canvas) // 1b
-	render() // 1c, 2b
+	render() // 1c, 2b, 3b, 3c
 }

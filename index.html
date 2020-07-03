@@ -24,9 +24,9 @@
 		void main() { 
 			gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aPos, 1.0);
 			
-			normalInterp = transpose(inverse(mat3(viewMatrix*modelMatrix))) * aNormals;
-			lightInterp =  (viewMatrix * vec4(normalize(lightPos-gl_Position.xyz),0.0)).xyz;
-			viewInterp =   eyePos - gl_Position.xyz;
+			normalInterp = normalize(transpose(inverse(mat3(viewMatrix * modelMatrix))) * aNormals);
+			lightInterp =  normalize(lightPos - gl_Position.xyz);
+			viewInterp =   normalize(eyePos - gl_Position.xyz);
 			color = aColor;
 		
 		}
