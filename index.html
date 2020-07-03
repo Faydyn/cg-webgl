@@ -4,6 +4,7 @@
 <head>
 	<title>Rendering mit WebGL</title>
 	<script type="x-shader/x-vertex" id="vertex-shader">#version 300 es
+		
 		precision mediump float;
 	
 		layout(location = 0) in vec3 aPos;
@@ -28,7 +29,6 @@
 			lightInterp =  normalize(lightPos - gl_Position.xyz);
 			viewInterp =   normalize(eyePos - gl_Position.xyz);
 			color = aColor;
-		
 		}
 	</script>
 	<script type="x-shader/x-fragment" id="fragment-shader">#version 300 es
