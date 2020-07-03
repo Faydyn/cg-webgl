@@ -15,8 +15,9 @@
  * 	I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
  * 	II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
  * 	III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
- * 	IV.  https://threejs.org/docs/#api/en/geometries/SphereGeometry
+ *  IV.  https://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html
  * 	V.   https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Smooth_Specular_Highlights
+ * 	VI.  https://manpages.debian.org/jessie/opengl-4-man-doc/glUniformMatrix3fv.3G.en.html
  *
  *
  *
@@ -305,7 +306,7 @@ window.onload = () => {
 
 	createGeometry() // 1a
 	loadModel() // 2a
-	drawSun() // 4 (rudimentaer)
+	drawSun() // 4 (nicht komplett)
 
 	gl.useProgram(program)
 

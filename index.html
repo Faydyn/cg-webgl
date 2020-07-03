@@ -4,7 +4,7 @@
 <head>
 	<title>Rendering mit WebGL</title>
 	<script type="x-shader/x-vertex" id="vertex-shader">#version 300 es
-		
+
 		precision mediump float;
 	
 		layout(location = 0) in vec3 aPos;
@@ -56,7 +56,7 @@
 			float lambert = dot(light, normal); 
 			vec3 phong_diffuse = color * I_diffuse * lambert;
 
-			vec3 reflected = 2.0 * (dot(light, normal)) * normal - light;
+			vec3 reflected = reflect(-light, normal); // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/reflect.xhtml
 			vec3 phong_spec = color * I_spec * pow(max(dot(reflected, view), 0.0),shiny);
 
 			fragColor = vec4(phong_ambient + phong_diffuse + phong_spec, 1.0);
