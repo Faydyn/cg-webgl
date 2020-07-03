@@ -9,6 +9,9 @@
 /**
  * Datum: 03.07.2020
  * Autor: Nils Henrik Seitz (218205308)
+ *
+ * Code geschrieben und getestet mit: VSCode, Chrome.
+ *
  * Falls es Komplikationen gibt, ist der Code und seine "History" zu finden unter:
  * https://github.com/Faydyn/cg-webgl
  *
@@ -16,13 +19,13 @@
  * 	- 	Uebungen 03 - 05
  * 	- 	https://manpages.debian.org/jessie/opengl-4-man-doc/glUniformMatrix3fv.3G.en.html
  * 	- 	https://www.khronos.org/registry/OpenGL-Refpages/es3.0/
- * 	-	Hilfe von Eduard Buch (Kommilitone)
  *  -	https://web.archive.org/web/20180816064924/http://www.sunandblackcat.com/tipFullView.php?l=eng&topicid=30
  * 	-	https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
  * 	-	https://youtu.be/33gn3_khXxw (IndigoCode)
  * 	-	https://github.com/gregtatum/mdn-lighting-models/tree/master/lessons (GregTatum)
  * 	-	https://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html
  * 	-	https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Smooth_Specular_Highlights
+ * 	-	Hilfe von Eduard Buch (Kommilitone)
  */
 
 let gl
@@ -35,7 +38,7 @@ let vaoSun
 let rotationalState = vec3(0.0)
 let sunPosition = vec3(0.0)
 
-const positions = [] //doesnt get reassign (the list itself)
+const positions = []
 const colors = Array(36).fill(Array(3).fill(0.6))
 const normals = []
 const sideNormals = []
@@ -54,7 +57,7 @@ const allSideNormalsOrder = [
 ]
 
 // 3 - BEGINN - Ergaenzung der Normalen
-// crossproduct with right hand rule to get normal (gets divided by distance before)
+// Kreuzprodukt mit Rechter Hand Regel um Normale zu erhalten
 const makeSideNormal = (a, b, c) =>
 	sideNormals.push(new normalize(cross(subtract(vertices[b], vertices[a]), subtract(vertices[c], vertices[a]))))
 
