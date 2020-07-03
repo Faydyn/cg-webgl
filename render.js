@@ -7,25 +7,20 @@
 			cross, normalize, subtract, initShaders, add*/
 
 /**
- * 	SRC:
- * 	Uebungen 03 - 05
- * 	Hilfe bei den Shadern
- * 	- von Uebung 05,
- * 	- Eduard Buch
- * 	I.	 https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
- * 	II.  https://www.youtube.com/watch?v=33gn3_khXxw&t=364s (IndigoCode)
- * 	III. https://www.youtube.com/watch?v=hYKK4rIAB48 (GregTatum)
- *  IV.  https://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html
- * 	V.   https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Smooth_Specular_Highlights
- * 	VI.  https://manpages.debian.org/jessie/opengl-4-man-doc/glUniformMatrix3fv.3G.en.html
+ * Datum: 03.07.2020
+ * Autor: Nils Henrik Seitz (218205308)
  *
- *
- *
- *
- *
- * Question:
- *
- * REFACTORING!!
+ * SRC:
+ * 	- 	Uebungen 03 - 05
+ * 	- 	https://manpages.debian.org/jessie/opengl-4-man-doc/glUniformMatrix3fv.3G.en.html
+ * 	- 	https://www.khronos.org/registry/OpenGL-Refpages/es3.0/
+ * 	-	Hilfe von Eduard Buch (Kommilitone)
+ *  -	https://web.archive.org/web/20180816064924/http://www.sunandblackcat.com/tipFullView.php?l=eng&topicid=30
+ * 	-	https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model (Wikipedia)
+ * 	-	https://youtu.be/33gn3_khXxw (IndigoCode)
+ * 	-	https://github.com/gregtatum/mdn-lighting-models/tree/master/lessons (GregTatum)
+ * 	-	https://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html
+ * 	-	https://en.wikibooks.org/wiki/GLSL_Programming/GLUT/Smooth_Specular_Highlights
  */
 
 let gl
@@ -123,8 +118,6 @@ const setUpMatrices = canvas => {
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(viewMatrix))
 	uniformLocationID = gl.getUniformLocation(program, 'projectionMatrix')
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(projectionMatrix))
-	uniformLocationID = gl.getUniformLocation(program, 'eyePos')
-	gl.uniform3fv(uniformLocationID, eyeVec)
 	// modelMatrix wird in render() uebergeben, da dort die Transformationen sind
 }
 // 1b - ENDE - Erstellen der Matrizen
@@ -259,9 +252,9 @@ const render = () => {
 
 	modelMatrix = rotateAllAxis(modelMatrix, ...rotationalState) // 2b - Annahme dass der Wert, um den rotiert wird, Grad ° entsprechen soll.
 
-	gl.uniform3fv(uniformDiffuseID, vec3(0.8, 0.8, 0.8)) // 3c - Diffuse - Pyramidenstumpf
-	gl.uniform3fv(uniformSpecID, vec3(0.9, 0.9, 0.9)) // 3c - Specular - Pyramidenstumpf
-	gl.uniform1f(uniformShinyID, 3.8) // 3c - Shininess - Pyramidenstumpf
+	gl.uniform3fv(uniformDiffuseID, vec3(0.75, 0.75, 0.75)) // 3c - Diffuse - Pyramidenstumpf
+	gl.uniform3fv(uniformSpecID, vec3(0.55, 0.55, 0.55)) // 3c - Specular - Pyramidenstumpf
+	gl.uniform1f(uniformShinyID, 3.3) // 3c - Shininess - Pyramidenstumpf
 
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vao)
@@ -271,9 +264,9 @@ const render = () => {
 	// 3a - BEGINN (passiert aber vor allem in den Shadern)
 	modelMatrix = rotateAllAxis(mat4(1.0), ...rotationalState) // 2b - reset ModelMatrix und rotiere erneut, ohne vorherige Transformationen
 
-	gl.uniform3fv(uniformDiffuseID, vec3(0.9, 0.9, 0.9)) // 3c - Diffuse - Hase
-	gl.uniform3fv(uniformSpecID, vec3(0.7, 0.7, 0.7)) // 3c - Specular - Hase
-	gl.uniform1f(uniformShinyID, 0.95) // 3c - Shininess - Hase
+	gl.uniform3fv(uniformDiffuseID, vec3(0.95, 0.95, 0.95)) // 3c - Diffuse - Hase
+	gl.uniform3fv(uniformSpecID, vec3(0.85, 0.85, 0.85)) // 3c - Specular - Hase
+	gl.uniform1f(uniformShinyID, 0.55) // 3c - Shininess - Hase
 
 	gl.uniformMatrix4fv(uniformLocationID, gl.FALSE, flatten(modelMatrix))
 	gl.bindVertexArray(vaoBunny)
