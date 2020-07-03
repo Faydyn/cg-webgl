@@ -9,6 +9,8 @@
 /**
  * Datum: 03.07.2020
  * Autor: Nils Henrik Seitz (218205308)
+ * Falls es Komplikationen gibt, ist der Code und seine "History" zu finden unter:
+ * https://github.com/Faydyn/cg-webgl
  *
  * SRC:
  * 	- 	Uebungen 03 - 05
